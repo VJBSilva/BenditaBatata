@@ -1,0 +1,5 @@
+a:4:{s:2:"id";i:1;s:4:"nome";s:6:"Frango";s:9:"categoria";s:15:"Batata Recheada";s:5:"preco";s:5:"35.00";}
+a:4:{s:2:"id";i:2;s:4:"nome";s:16:"Frango com Bacon";s:9:"categoria";s:15:"Batata Recheada";s:5:"preco";s:5:"35.00";}
+a:4:{s:2:"id";i:3;s:4:"nome";s:6:"Frango";s:9:"categoria";s:6:"Caldos";s:5:"preco";s:5:"20.00";}
+a:4:{s:2:"id";i:4;s:4:"nome";s:16:"Frango com Pequi";s:9:"categoria";s:15:"Batata Recheada";s:5:"preco";s:5:"35.00";}
+a:4:{s:2:"id";i:5;s:4:"nome";s:8:"cupuaçu";s:9:"categoria";s:15:"Batata Recheada";s:5:"preco";s:5:"50.00";}
