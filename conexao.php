@@ -1,5 +1,5 @@
 <?php
-$host = 'meu-servidor-sql.database.windows.net'; // Substitua pelo nome do seu servidor
+$host = 'vjbsdb.database.windows.net'; // Substitua pelo nome do seu servidor
 $dbname = 'vjbsdb'; // Nome do banco de dados
 $username = 'vjbsdb'; // Nome de usuário do administrador
 $password = '@Aberto09'; // Senha do administrador
