@@ -479,49 +479,76 @@ $pedidos = carregarPedidos($pdo);
     <script>
         // Funções JavaScript para manipulação do pop-up e alteração do pedido
         function abrirPopupAlterarPedido(pedidoId) {
-            console.log('Abrindo pop-up para o pedido:', pedidoId);
-            document.getElementById('pedido-id').textContent = pedidoId;
-            document.getElementById('popup-alterar-pedido').style.display = 'flex';
+    console.log('Abrindo pop-up para o pedido:', pedidoId);
 
-            // Buscar os dados do pedido
-            fetch(`buscar_pedido.php?id=${pedidoId}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data) {
-                        // Preencher os campos do pop-up com os dados do pedido
-                        document.getElementById('observacao-alterar').value = data.observacao || '';
-                        document.getElementById('senha-alterar').value = data.senha || '';
-                        document.getElementById('desconto-alterar').value = data.desconto || '0.00';
-                        document.querySelector(`input[name="metodo_pagamento_alterar"][value="${data.metodo_pagamento}"]`).checked = true;
+    // Limpar os dados do pop-up antes de carregar um novo pedido
+    limparPopup();
 
-                        // Preencher as quantidades e adicionais dos itens
-                        if (data.itens && data.itens.length > 0) {
-                            data.itens.forEach(item => {
-                                const inputQuantidade = document.getElementById(`produto_${item.produto_id}`);
-                                if (inputQuantidade) {
-                                    inputQuantidade.value = item.quantidade;
-                                }
+    document.getElementById('pedido-id').textContent = pedidoId;
+    document.getElementById('popup-alterar-pedido').style.display = 'flex';
 
-                                // Marcar os adicionais selecionados
-                                if (item.adicionais && item.adicionais.length > 0) {
-                                    item.adicionais.forEach(adicionalId => {
-                                        const checkbox = document.getElementById(`adicional_${adicionalId}_produto_${item.produto_id}`);
-                                        if (checkbox) {
-                                            checkbox.checked = true;
-                                        }
-                                    });
+    // Buscar os dados do pedido
+    fetch(`buscar_pedido.php?id=${pedidoId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data) {
+                // Preencher os campos do pop-up com os dados do pedido
+                document.getElementById('observacao-alterar').value = data.observacao || '';
+                document.getElementById('senha-alterar').value = data.senha || '';
+                document.getElementById('desconto-alterar').value = data.desconto || '0.00';
+                document.querySelector(`input[name="metodo_pagamento_alterar"][value="${data.metodo_pagamento}"]`).checked = true;
+
+                // Preencher as quantidades e adicionais dos itens
+                if (data.itens && data.itens.length > 0) {
+                    data.itens.forEach(item => {
+                        const inputQuantidade = document.getElementById(`produto_${item.produto_id}`);
+                        if (inputQuantidade) {
+                            inputQuantidade.value = item.quantidade;
+                        }
+
+                        // Marcar os adicionais selecionados
+                        if (item.adicionais && item.adicionais.length > 0) {
+                            item.adicionais.forEach(adicionalId => {
+                                const checkbox = document.getElementById(`adicional_${adicionalId}_produto_${item.produto_id}`);
+                                if (checkbox) {
+                                    checkbox.checked = true;
                                 }
                             });
-
-                            // Atualizar o total a pagar
-                            atualizarTotal();
                         }
-                    }
-                })
-                .catch(error => {
-                    console.error('Erro ao buscar dados do pedido:', error);
-                });
-        }
+                    });
+
+                    // Atualizar o total a pagar
+                    atualizarTotal();
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Erro ao buscar dados do pedido:', error);
+        });
+}
+
+function limparPopup() {
+    // Limpar as quantidades dos produtos
+    const produtos = document.querySelectorAll('.produto input[type="text"]');
+    produtos.forEach(input => {
+        input.value = '0';
+    });
+
+    // Limpar os adicionais selecionados
+    const adicionais = document.querySelectorAll('.adicionais input[type="checkbox"]');
+    adicionais.forEach(checkbox => {
+        checkbox.checked = false;
+    });
+
+    // Limpar as observações, senha, método de pagamento e desconto
+    document.getElementById('observacao-alterar').value = '';
+    document.getElementById('senha-alterar').value = '';
+    document.getElementById('desconto-alterar').value = '0.00';
+    document.querySelector('input[name="metodo_pagamento_alterar"][value="cartao"]').checked = true;
+
+    // Atualizar o total a pagar
+    atualizarTotal();
+}
 
         function fecharPopup() {
             document.getElementById('popup-alterar-pedido').style.display = 'none';
