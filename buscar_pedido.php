@@ -3,6 +3,9 @@ require 'conexao.php';
 
 $pedidoId = $_GET['id'];
 
+// Log para depuração
+error_log("Buscando pedido ID: $pedidoId");
+
 // Buscar os dados do pedido
 $stmt = $pdo->prepare("SELECT * FROM pedidos WHERE id = ?");
 $stmt->execute([$pedidoId]);
@@ -20,6 +23,9 @@ if ($pedido) {
     ");
     $stmt->execute([$pedidoId]);
     $itens = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Log para depuração
+    error_log("Itens do pedido: " . print_r($itens, true));
 
     // Formatar os adicionais como array
     foreach ($itens as &$item) {
