@@ -1,38 +1,26 @@
 <?php
-// Simula um pedido fictício
+require 'conexao.php';
+
 $pedidoId = $_GET['id'];
 
-// Dados fictícios do pedido
-$pedidoFicticio = [
-    "id" => $pedidoId,
-    "observacao" => "Pedido de teste",
-    "senha" => "123",
-    "desconto" => "0.00",
-    "metodo_pagamento" => "cartao",
-    "status" => "pendente",
-    "itens" => [
-        [
-            "id" => 1,
-            "pedido_id" => $pedidoId,
-            "produto_id" => 1,
-            "quantidade" => 2,
-            "valor_unitario" => "38.00",
-            "produto_nome" => "Frango",
-            "adicionais" => [1, 2] // IDs dos adicionais
-        ],
-        [
-            "id" => 2,
-            "pedido_id" => $pedidoId,
-            "produto_id" => 2,
-            "quantidade" => 1,
-            "valor_unitario" => "40.00",
-            "produto_nome" => "Bacon",
-            "adicionais" => [3] // IDs dos adicionais
-        ]
-    ]
-];
+try {
+    // Buscar apenas o status do pedido
+    $stmt = $pdo->prepare("SELECT status FROM pedidos WHERE id = ?");
+    $stmt->execute([$pedidoId]);
+    $pedido = $stmt->fetch(PDO::FETCH_ASSOC);
 
-// Retorna os dados fictícios como JSON
-header('Content-Type: application/json');
-echo json_encode($pedidoFicticio);
+    if ($pedido) {
+        // Retornar o status como JSON
+        header('Content-Type: application/json');
+        echo json_encode(['status' => $pedido['status']]);
+    } else {
+        // Pedido não encontrado
+        http_response_code(404);
+        echo json_encode(['status' => 'error', 'message' => 'Pedido não encontrado.']);
+    }
+} catch (PDOException $e) {
+    // Erro no banco de dados
+    http_response_code(500);
+    echo json_encode(['status' => 'error', 'message' => 'Erro ao buscar status do pedido: ' . $e->getMessage()]);
+}
 ?>
