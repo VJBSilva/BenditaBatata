@@ -73,7 +73,7 @@ $pedidos = carregarPedidos($pdo);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Visualizar Pedidos - Bendita Batata</title>
-    <style>
+	 <style>
         /* Estilos da página de visualização de pedidos */
         body {
             font-family: Arial, sans-serif;
@@ -376,7 +376,7 @@ $pedidos = carregarPedidos($pdo);
         <?php foreach ($pedidos as $pedido): ?>
             <div class="pedido">
                 <h2>Pedido <?= $pedido['id'] ?></h2>
-                <p><strong>Senha:</strong> <?= $pedido['senha'] ?? 'Nenhuma' ?></p> <!-- Exibir a senha -->
+                <p><strong>Senha:</strong> <?= $pedido['senha'] ?? 'Nenhuma' ?></p>
                 <p><strong>Itens:</strong></p>
                 <ul>
                     <?php
@@ -479,57 +479,55 @@ $pedidos = carregarPedidos($pdo);
     <script>
         // Funções JavaScript para manipulação do pop-up e alteração do pedido
         function abrirPopupAlterarPedido(pedidoId) {
-    console.log('Abrindo pop-up para o pedido:', pedidoId);
-    document.getElementById('pedido-id').textContent = pedidoId;
-    document.getElementById('popup-alterar-pedido').style.display = 'flex';
+            console.log('Abrindo pop-up para o pedido:', pedidoId);
+            document.getElementById('pedido-id').textContent = pedidoId;
+            document.getElementById('popup-alterar-pedido').style.display = 'flex';
 
-    // Buscar os dados do pedido
-    fetch(`buscar_pedido.php?id=${pedidoId}`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Erro na requisição: ' + response.statusText);
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log('Dados do pedido:', data); // Log para depuração
-            if (data) {
-                // Preencher os campos do pop-up com os dados do pedido
-                document.getElementById('observacao-alterar').value = data.observacao || '';
-                document.getElementById('senha-alterar').value = data.senha || '';
-                document.getElementById('desconto-alterar').value = data.desconto || '0.00';
-                document.querySelector(`input[name="metodo_pagamento_alterar"][value="${data.metodo_pagamento}"]`).checked = true;
+            // Buscar os dados do pedido
+            fetch(`buscar_pedido.php?id=${pedidoId}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Erro na requisição: ' + response.statusText);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Dados do pedido:', data);
+                    if (data) {
+                        // Preencher os campos do pop-up com os dados do pedido
+                        document.getElementById('observacao-alterar').value = data.observacao || '';
+                        document.getElementById('senha-alterar').value = data.senha || '';
+                        document.getElementById('desconto-alterar').value = data.desconto || '0.00';
+                        document.querySelector(`input[name="metodo_pagamento_alterar"][value="${data.metodo_pagamento}"]`).checked = true;
 
-                // Preencher as quantidades e adicionais dos itens
-                if (data.itens && data.itens.length > 0) {
-                    data.itens.forEach(item => {
-                        const inputQuantidade = document.getElementById(`produto_${item.produto_id}`);
-                        if (inputQuantidade) {
-                            inputQuantidade.value = item.quantidade;
-                            console.log(`Quantidade do produto ${item.produto_id}: ${item.quantidade}`); // Log para depuração
-                        }
+                        // Preencher as quantidades e adicionais dos itens
+                        if (data.itens && data.itens.length > 0) {
+                            data.itens.forEach(item => {
+                                const inputQuantidade = document.getElementById(`produto_${item.produto_id}`);
+                                if (inputQuantidade) {
+                                    inputQuantidade.value = item.quantidade;
+                                }
 
-                        // Marcar os adicionais selecionados
-                        if (item.adicionais && item.adicionais.length > 0) {
-                            item.adicionais.forEach(adicionalId => {
-                                const checkbox = document.getElementById(`adicional_${adicionalId}_produto_${item.produto_id}`);
-                                if (checkbox) {
-                                    checkbox.checked = true;
-                                    console.log(`Checkbox adicional ${adicionalId} marcado para o produto ${item.produto_id}`); // Log para depuração
+                                // Marcar os adicionais selecionados
+                                if (item.adicionais && item.adicionais.length > 0) {
+                                    item.adicionais.forEach(adicionalId => {
+                                        const checkbox = document.getElementById(`adicional_${adicionalId}_produto_${item.produto_id}`);
+                                        if (checkbox) {
+                                            checkbox.checked = true;
+                                        }
+                                    });
                                 }
                             });
-                        }
-                    });
 
-                    // Atualizar o total a pagar
-                    atualizarTotal();
-                }
-            }
-        })
-        .catch(error => {
-            console.error('Erro ao buscar dados do pedido:', error);
-        });
-}
+                            // Atualizar o total a pagar
+                            atualizarTotal();
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro ao buscar dados do pedido:', error);
+                });
+        }
 
         function fecharPopup() {
             document.getElementById('popup-alterar-pedido').style.display = 'none';
@@ -585,7 +583,7 @@ $pedidos = carregarPedidos($pdo);
                 if (data.status === 'success') {
                     alert('Pedido alterado com sucesso!');
                     fecharPopup();
-                    location.reload(); // Recarregar a página para atualizar a lista de pedidos
+                    location.reload();
                 } else {
                     alert('Erro ao alterar o pedido: ' + data.message);
                 }
