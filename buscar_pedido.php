@@ -41,6 +41,9 @@ if ($pedido) {
         $item['adicionais'] = $item['adicionais'] ? explode(',', $item['adicionais']) : [];
     }
 
+    // Formatar o desconto para garantir dois dígitos antes e depois do ponto decimal
+    $pedido['desconto'] = number_format((float)$pedido['desconto'], 2, '.', '');
+
     // Adicionar os itens ao array do pedido
     $pedido['itens'] = $itens;
 
