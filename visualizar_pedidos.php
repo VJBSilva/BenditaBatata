@@ -327,48 +327,45 @@ $pedidos = carregarPedidos($pdo);
             border-radius: 3px;
             font-size: 14px;
         }
-		/* Estilo do pop-up */
-.popup {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
-
-.popup-content {
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 5px;
-    width: 95%;
-    max-width: 1200px;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    display: flex;
-    flex-direction: column;
-    position: relative; /* Garante que o botão de fechar seja posicionado corretamente */
-}
-
-/* Estilo do botão de fechar */
-.close-popup {
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    font-size: 24px;
-    font-weight: bold;
-    color: red;
-    cursor: pointer;
-}
-
-.close-popup:hover {
-    color: darkred;
-}
+        /* Estilo do pop-up */
+        .popup {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .popup-content {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            width: 95%;
+            max-width: 1200px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            position: relative; /* Garante que o botão de fechar seja posicionado corretamente */
+        }
+        /* Estilo do botão de fechar */
+        .close-popup {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 24px;
+            font-weight: bold;
+            color: red;
+            cursor: pointer;
+        }
+        .close-popup:hover {
+            color: darkred;
+        }
     </style>
 </head>
 <body>
@@ -379,6 +376,7 @@ $pedidos = carregarPedidos($pdo);
         <?php foreach ($pedidos as $pedido): ?>
             <div class="pedido">
                 <h2>Pedido <?= $pedido['id'] ?></h2>
+                <p><strong>Senha:</strong> <?= $pedido['senha'] ?? 'Nenhuma' ?></p> <!-- Exibir a senha -->
                 <p><strong>Itens:</strong></p>
                 <ul>
                     <?php
@@ -476,92 +474,54 @@ $pedidos = carregarPedidos($pdo);
                 <button onclick="salvarAlteracoes()">Salvar Alterações</button>
             </div>
         </div>
-		<!-- Pop-up para alterar pedido -->
-<div id="popup-alterar-pedido" class="popup">
-    <div class="popup-content">
-        <!-- Botão de fechar -->
-        <span class="close-popup" onclick="fecharPopup()">&times;</span>
-        <div class="popup-header">Alterar Pedido <span id="pedido-id"></span></div>
-        <div class="container">
-            <!-- Conteúdo do pop-up -->
-        </div>
-        <div class="form-container">
-            <!-- Formulário -->
-        </div>
-        <div class="footer">
-            <!-- Rodapé -->
-        </div>
-    </div>
-</div>
     </div>
 
     <script>
         // Funções JavaScript para manipulação do pop-up e alteração do pedido
-function abrirPopupAlterarPedido(pedidoId) {
-    console.log('Abrindo pop-up para o pedido:', pedidoId);
-    document.getElementById('pedido-id').textContent = pedidoId;
-    document.getElementById('popup-alterar-pedido').style.display = 'flex';
+        function abrirPopupAlterarPedido(pedidoId) {
+            console.log('Abrindo pop-up para o pedido:', pedidoId);
+            document.getElementById('pedido-id').textContent = pedidoId;
+            document.getElementById('popup-alterar-pedido').style.display = 'flex';
 
-    // Buscar os dados do pedido
-    fetch(`buscar_pedido.php?id=${pedidoId}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data) {
-                // Preencher os campos do pop-up com os dados do pedido
-                document.getElementById('observacao-alterar').value = data.observacao || '';
-                document.getElementById('senha-alterar').value = data.senha || '';
-                document.getElementById('desconto-alterar').value = data.desconto || '0.00';
-                document.querySelector(`input[name="metodo_pagamento_alterar"][value="${data.metodo_pagamento}"]`).checked = true;
+            // Buscar os dados do pedido
+            fetch(`buscar_pedido.php?id=${pedidoId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data) {
+                        // Preencher os campos do pop-up com os dados do pedido
+                        document.getElementById('observacao-alterar').value = data.observacao || '';
+                        document.getElementById('senha-alterar').value = data.senha || '';
+                        document.getElementById('desconto-alterar').value = data.desconto || '0.00';
+                        document.querySelector(`input[name="metodo_pagamento_alterar"][value="${data.metodo_pagamento}"]`).checked = true;
 
-                // Preencher as quantidades e adicionais dos itens
-                if (data.itens && data.itens.length > 0) {
-                    data.itens.forEach(item => {
-                        const inputQuantidade = document.getElementById(`produto_${item.produto_id}`);
-                        if (inputQuantidade) {
-                            inputQuantidade.value = item.quantidade;
-                        }
+                        // Preencher as quantidades e adicionais dos itens
+                        if (data.itens && data.itens.length > 0) {
+                            data.itens.forEach(item => {
+                                const inputQuantidade = document.getElementById(`produto_${item.produto_id}`);
+                                if (inputQuantidade) {
+                                    inputQuantidade.value = item.quantidade;
+                                }
 
-                        // Marcar os adicionais selecionados
-                        if (item.adicionais && item.adicionais.length > 0) {
-                            item.adicionais.forEach(adicionalId => {
-                                const checkbox = document.getElementById(`adicional_${adicionalId}_produto_${item.produto_id}`);
-                                if (checkbox) {
-                                    checkbox.checked = true;
+                                // Marcar os adicionais selecionados
+                                if (item.adicionais && item.adicionais.length > 0) {
+                                    item.adicionais.forEach(adicionalId => {
+                                        const checkbox = document.getElementById(`adicional_${adicionalId}_produto_${item.produto_id}`);
+                                        if (checkbox) {
+                                            checkbox.checked = true;
+                                        }
+                                    });
                                 }
                             });
+
+                            // Atualizar o total a pagar
+                            atualizarTotal();
                         }
-                    });
-
-                    // Atualizar o total a pagar
-                    atualizarTotal();
-                }
-            }
-        })
-        .catch(error => {
-            console.error('Erro ao buscar dados do pedido:', error);
-        });
-}// Função para atualizar o total a pagar
-function atualizarTotal() {
-    const produtos = document.querySelectorAll('.produto');
-    let total = 0;
-
-    // Calcular o total dos itens
-    produtos.forEach(produto => {
-        const quantidade = parseInt(produto.querySelector('input').value) || 0;
-        const preco = parseFloat(produto.getAttribute('data-preco')) || 0;
-        total += quantidade * preco;
-    });
-
-    // Subtrair o desconto
-    const desconto = parseFloat(document.getElementById('desconto-alterar').value) || 0;
-    total -= desconto;
-
-    // Atualizar o valor exibido
-    document.getElementById('total-alterar').textContent = total.toFixed(2);
-}
-
-// Adicionar evento de escuta ao campo de desconto
-document.getElementById('desconto-alterar').addEventListener('input', atualizarTotal);
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro ao buscar dados do pedido:', error);
+                });
+        }
 
         function fecharPopup() {
             document.getElementById('popup-alterar-pedido').style.display = 'none';
