@@ -7,7 +7,7 @@ error_log("Buscando pedido ID: $pedidoId"); // Log para depuração
 
 try {
     // Buscar os dados do pedido
-    $stmt = $pdo->prepare("SELECT * FROM pedidos WHERE id = ?");
+    $stmt = $pdo->prepare("SELECT * FROM pedidos WHERE id = 1");
     $stmt->execute([$pedidoId]);
     $pedido = $stmt->fetch(PDO::FETCH_ASSOC);
 
