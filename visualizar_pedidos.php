@@ -175,6 +175,7 @@ $pedidos = carregarPedidos($pdo);
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             display: flex;
             flex-direction: column;
+            position: relative;
         }
         .popup-header {
             text-align: center;
