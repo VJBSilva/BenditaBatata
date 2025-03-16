@@ -303,7 +303,7 @@ h1 {
 /* Estilos do footer (rodapé do pop-up) */
 .footer {
     background-color: #fff;
-    padding: 20px;
+    padding: 0px;
     box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
     display: flex;
     align-items: center;
