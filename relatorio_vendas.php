@@ -66,31 +66,35 @@
 <body>
     <h1>Relatório de Vendas</h1>
     <form method="GET" action="" class="filtro">
-        <label for="data_inicio">Data Inicial:</label>
-        <input type="date" id="data_inicio" name="data_inicio" value="<?php echo isset($_GET['data_inicio']) ? $_GET['data_inicio'] : date('Y-m-d'); ?>" required>
+    <label for="data_inicio">Data Inicial:</label>
+    <input type="date" id="data_inicio" name="data_inicio" value="<?php echo isset($_GET['data_inicio']) ? $_GET['data_inicio'] : date('Y-m-d'); ?>" required>
+    <input type="time" id="hora_inicio" name="hora_inicio" value="<?php echo isset($_GET['hora_inicio']) ? $_GET['hora_inicio'] : '00:00'; ?>" required>
 
-        <label for="data_fim">Data Final:</label>
-        <input type="date" id="data_fim" name="data_fim" value="<?php echo isset($_GET['data_fim']) ? $_GET['data_fim'] : date('Y-m-d'); ?>" required>
+    <label for="data_fim">Data Final:</label>
+    <input type="date" id="data_fim" name="data_fim" value="<?php echo isset($_GET['data_fim']) ? $_GET['data_fim'] : date('Y-m-d'); ?>" required>
+    <input type="time" id="hora_fim" name="hora_fim" value="<?php echo isset($_GET['hora_fim']) ? $_GET['hora_fim'] : '23:59'; ?>" required>
 
-        <button type="submit">Filtrar</button>
-    </form>
+    <button type="submit">Filtrar</button>
+</form>
 
     <?php
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     require 'conexao.php'; // Arquivo de conexão com o banco de dados
 
-    // Definir datas padrão (hoje)
+    // Definir datas e horas padrão (hoje)
     $data_inicio = isset($_GET['data_inicio']) ? $_GET['data_inicio'] : date('Y-m-d');
+    $hora_inicio = isset($_GET['hora_inicio']) ? $_GET['hora_inicio'] : '00:00';
     $data_fim = isset($_GET['data_fim']) ? $_GET['data_fim'] : date('Y-m-d');
+    $hora_fim = isset($_GET['hora_fim']) ? $_GET['hora_fim'] : '23:59';
+
+    // Combinar data e hora para o formato timestamp
+    $data_inicio_timestamp = $data_inicio . ' ' . $hora_inicio;
+    $data_fim_timestamp = $data_fim . ' ' . $hora_fim;
 
     // Validar datas
-    if ($data_inicio > $data_fim) {
-        echo "<p class='mensagem-erro'>A data inicial não pode ser maior que a data final.</p>";
+    if ($data_inicio_timestamp > $data_fim_timestamp) {
+        echo "<p class='mensagem-erro'>A data/hora inicial não pode ser maior que a data/hora final.</p>";
     } else {
-        // Converter as datas para o formato timestamp (YYYY-MM-DD 00:00:00 e YYYY-MM-DD 23:59:59)
-        $data_inicio_timestamp = $data_inicio . ' 00:00:00';
-        $data_fim_timestamp = $data_fim . ' 23:59:59';
-
         try {
             // Buscar vendas no período
             $stmt = $pdo->prepare("
@@ -136,6 +140,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             $stmt->execute([$data_inicio_timestamp, $data_fim_timestamp]);
             $total_por_categoria = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+            // Função para formatar valores em reais
+            function formatarReais($valor) {
+                return 'R$ ' . number_format($valor, 2, ',', '.');
+            }
+
             // Função para exibir tabelas
             function exibirTabela($dados, $colunas, $titulo) {
                 if (count($dados) > 0) {
@@ -148,8 +157,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                     echo "</tr>";
                     foreach ($dados as $linha) {
                         echo "<tr>";
-                        foreach ($linha as $valor) {
-                            echo "<td>$valor</td>";
+                        foreach ($linha as $chave => $valor) {
+                            if (in_array($chave, ['total_bruto', 'total_desconto', 'total_liquido'])) {
+                                echo "<td>" . formatarReais($valor) . "</td>";
+                            } else {
+                                echo "<td>$valor</td>";
+                            }
                         }
                         echo "</tr>";
                     }
@@ -171,7 +184,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             }
 
             // Exibir o total líquido geral
-            echo "<h3>Total Líquido Geral: R$ " . number_format($total_liquido_geral, 2, ',', '.') . "</h3>";
+            echo "<h3>Total Líquido Geral: " . formatarReais($total_liquido_geral) . "</h3>";
         } catch (PDOException $e) {
             echo "<p class='mensagem-erro'>Erro ao buscar dados: " . $e->getMessage() . "</p>";
         }
