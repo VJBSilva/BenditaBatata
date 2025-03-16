@@ -537,9 +537,9 @@ h1 {
     <!-- Desconto e Total -->
     <div class="desconto-total">
         <div class="desconto">
-            <label for="desconto-alterar">Desconto (R$):</label>
-            <input type="text" id="desconto-alterar" name="desconto" value="0.00">
-        </div>
+    <label for="desconto-alterar">Desconto (R$):</label>
+    <input type="text" id="desconto-alterar" name="desconto" value="0.00" oninput="atualizarTotal()">
+</div>
         <div class="total">
             Total a Pagar: R$ <span id="total-alterar">0.00</span>
         </div>
@@ -690,20 +690,26 @@ h1 {
         }
 
         function atualizarTotal() {
-            const produtos = document.querySelectorAll('.produto');
-            let total = 0;
+    const produtos = document.querySelectorAll('.produto');
+    let total = 0;
 
-            produtos.forEach(produto => {
-                const quantidade = parseInt(produto.querySelector('input').value) || 0;
-                const preco = parseFloat(produto.getAttribute('data-preco')) || 0;
-                total += quantidade * preco;
-            });
+    // Soma o valor total dos produtos
+    produtos.forEach(produto => {
+        const quantidade = parseInt(produto.querySelector('input').value) || 0;
+        const preco = parseFloat(produto.getAttribute('data-preco')) || 0;
+        total += quantidade * preco;
+    });
 
-            const desconto = parseFloat(document.getElementById('desconto-alterar').value) || 0;
-            total -= desconto;
+    // Aplica o desconto
+    const desconto = parseFloat(document.getElementById('desconto-alterar').value) || 0;
+    total -= desconto;
 
-            document.getElementById('total-alterar').textContent = total.toFixed(2);
-        }
+    // Garante que o total não seja negativo
+    total = Math.max(total, 0);
+
+    // Atualiza o valor exibido
+    document.getElementById('total-alterar').textContent = total.toFixed(2);
+}
 
         function diminuirQuantidade(id) {
             const input = document.getElementById(id);
