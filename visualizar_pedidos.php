@@ -388,7 +388,7 @@ h1 {
     background-color: #fff;
     box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
     display: flex;
-    gap: 20px;
+    gap: 30px;
 }
 
 .form-group {
