@@ -403,7 +403,7 @@ h1 {
 }
 
 .form-group textarea {
-    width: 30%;
+    width: 80%;
     height: 25px;
     padding: 10px;
     border: 1px solid #ddd;
@@ -412,7 +412,7 @@ h1 {
 }
 
 .form-group input[type="text"] {
-    width: 100%;
+    width: 30%;
     padding: 10px;
     border: 1px solid #ddd;
     border-radius: 3px;
