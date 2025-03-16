@@ -135,7 +135,7 @@ h1 {
 .botoes-pedido button {
     flex: 0 0 auto;
     min-width: 56px;
-    max-width: 64px;
+    max-width: 70px;
     text-align: center;
     background-color: #007bff;
     color: #fff;
