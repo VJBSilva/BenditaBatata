@@ -76,95 +76,95 @@
     </form>
 
     <?php
-    if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-        require 'conexao.php'; // Arquivo de conexão com o banco de dados
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    require 'conexao.php'; // Arquivo de conexão com o banco de dados
 
-        // Definir datas padrão (hoje)
-        $data_inicio = isset($_GET['data_inicio']) ? $_GET['data_inicio'] : date('Y-m-d');
-        $data_fim = isset($_GET['data_fim']) ? $_GET['data_fim'] : date('Y-m-d');
+    // Definir datas padrão (hoje)
+    $data_inicio = isset($_GET['data_inicio']) ? $_GET['data_inicio'] : date('Y-m-d');
+    $data_fim = isset($_GET['data_fim']) ? $_GET['data_fim'] : date('Y-m-d');
 
-        // Validar datas
-        if ($data_inicio > $data_fim) {
-            echo "<p class='mensagem-erro'>A data inicial não pode ser maior que a data final.</p>";
-        } else {
-            // Converter as datas para o formato timestamp (YYYY-MM-DD 00:00:00 e YYYY-MM-DD 23:59:59)
-            $data_inicio_timestamp = $data_inicio . ' 00:00:00';
-            $data_fim_timestamp = $data_fim . ' 23:59:59';
+    // Validar datas
+    if ($data_inicio > $data_fim) {
+        echo "<p class='mensagem-erro'>A data inicial não pode ser maior que a data final.</p>";
+    } else {
+        // Converter as datas para o formato timestamp (YYYY-MM-DD 00:00:00 e YYYY-MM-DD 23:59:59)
+        $data_inicio_timestamp = $data_inicio . ' 00:00:00';
+        $data_fim_timestamp = $data_fim . ' 23:59:59';
 
-            try {
-                // Buscar vendas no período
-                $stmt = $pdo->prepare("
-                    SELECT p.id, p.dataPedido, p.metodo_pagamento, SUM(ip.quantidade * ip.valor_unitario) AS total
-                    FROM pedidos p
-                    JOIN itens_pedido ip ON p.id = ip.pedido_id
-                    WHERE p.dataPedido BETWEEN ? AND ?
-                    GROUP BY p.id
-                ");
-                $stmt->execute([$data_inicio_timestamp, $data_fim_timestamp]);
-                $vendas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        try {
+            // Buscar vendas no período
+            $stmt = $pdo->prepare("
+                SELECT p.id, p.dataPedido, p.metodo_pagamento, SUM(ip.quantidade * ip.valor_unitario) AS total
+                FROM pedidos p
+                JOIN itens_pedido ip ON p.id = ip.pedido_id
+                WHERE p.dataPedido BETWEEN ? AND ?
+                GROUP BY p.id, p.dataPedido, p.metodo_pagamento
+            ");
+            $stmt->execute([$data_inicio_timestamp, $data_fim_timestamp]);
+            $vendas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-                // Totalização por tipo de pagamento
-                $stmt = $pdo->prepare("
-                    SELECT p.metodo_pagamento, SUM(ip.quantidade * ip.valor_unitario) AS total
-                    FROM pedidos p
-                    JOIN itens_pedido ip ON p.id = ip.pedido_id
-                    WHERE p.dataPedido BETWEEN ? AND ?
-                    GROUP BY p.metodo_pagamento
-                ");
-                $stmt->execute([$data_inicio_timestamp, $data_fim_timestamp]);
-                $total_por_pagamento = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            // Totalização por tipo de pagamento
+            $stmt = $pdo->prepare("
+                SELECT p.metodo_pagamento, SUM(ip.quantidade * ip.valor_unitario) AS total
+                FROM pedidos p
+                JOIN itens_pedido ip ON p.id = ip.pedido_id
+                WHERE p.dataPedido BETWEEN ? AND ?
+                GROUP BY p.metodo_pagamento
+            ");
+            $stmt->execute([$data_inicio_timestamp, $data_fim_timestamp]);
+            $total_por_pagamento = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-                // Totalização por categoria
-                $stmt = $pdo->prepare("
-                    SELECT c.nome AS categoria, SUM(ip.quantidade * ip.valor_unitario) AS total
-                    FROM pedidos p
-                    JOIN itens_pedido ip ON p.id = ip.pedido_id
-                    JOIN produtos pr ON ip.produto_id = pr.id
-                    JOIN categorias c ON pr.categoria_id = c.id
-                    WHERE p.dataPedido BETWEEN ? AND ?
-                    GROUP BY c.nome
-                ");
-                $stmt->execute([$data_inicio_timestamp, $data_fim_timestamp]);
-                $total_por_categoria = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            // Totalização por categoria
+            $stmt = $pdo->prepare("
+                SELECT c.nome AS categoria, SUM(ip.quantidade * ip.valor_unitario) AS total
+                FROM pedidos p
+                JOIN itens_pedido ip ON p.id = ip.pedido_id
+                JOIN produtos pr ON ip.produto_id = pr.id
+                JOIN categorias c ON pr.categoria_id = c.id
+                WHERE p.dataPedido BETWEEN ? AND ?
+                GROUP BY c.nome
+            ");
+            $stmt->execute([$data_inicio_timestamp, $data_fim_timestamp]);
+            $total_por_categoria = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-                // Função para exibir tabelas
-                function exibirTabela($dados, $colunas, $titulo) {
-                    if (count($dados) > 0) {
-                        echo "<h2>$titulo</h2>";
-                        echo "<table>
-                                <tr>";
-                        foreach ($colunas as $coluna) {
-                            echo "<th>$coluna</th>";
+            // Função para exibir tabelas
+            function exibirTabela($dados, $colunas, $titulo) {
+                if (count($dados) > 0) {
+                    echo "<h2>$titulo</h2>";
+                    echo "<table>
+                            <tr>";
+                    foreach ($colunas as $coluna) {
+                        echo "<th>$coluna</th>";
+                    }
+                    echo "</tr>";
+                    foreach ($dados as $linha) {
+                        echo "<tr>";
+                        foreach ($linha as $valor) {
+                            echo "<td>$valor</td>";
                         }
                         echo "</tr>";
-                        foreach ($dados as $linha) {
-                            echo "<tr>";
-                            foreach ($linha as $valor) {
-                                echo "<td>$valor</td>";
-                            }
-                            echo "</tr>";
-                        }
-                        echo "</table>";
-                    } else {
-                        echo "<p>Nenhum dado encontrado.</p>";
                     }
+                    echo "</table>";
+                } else {
+                    echo "<p>Nenhum dado encontrado.</p>";
                 }
-
-                // Exibir os resultados
-                exibirTabela($vendas, ['ID Pedido', 'Data', 'Método de Pagamento', 'Total'], 'Vendas no Período');
-                exibirTabela($total_por_pagamento, ['Método de Pagamento', 'Total'], 'Totalização por Tipo de Pagamento');
-                exibirTabela($total_por_categoria, ['Categoria', 'Total'], 'Totalização por Categoria');
-
-                // Calcular o total geral
-                $total_geral = array_sum(array_column($vendas, 'total'));
-
-                // Exibir o total geral
-                echo "<h3>Total Geral: R$ " . number_format($total_geral, 2, ',', '.') . "</h3>";
-            } catch (PDOException $e) {
-                echo "<p class='mensagem-erro'>Erro ao buscar dados: " . $e->getMessage() . "</p>";
             }
+
+            // Exibir os resultados
+            exibirTabela($vendas, ['ID Pedido', 'Data', 'Método de Pagamento', 'Total'], 'Vendas no Período');
+            exibirTabela($total_por_pagamento, ['Método de Pagamento', 'Total'], 'Totalização por Tipo de Pagamento');
+            exibirTabela($total_por_categoria, ['Categoria', 'Total'], 'Totalização por Categoria');
+
+            // Calcular o total geral
+            $total_geral = array_sum(array_column($vendas, 'total'));
+
+            // Exibir o total geral
+            echo "<h3>Total Geral: R$ " . number_format($total_geral, 2, ',', '.') . "</h3>";
+        } catch (PDOException $e) {
+            echo "<p class='mensagem-erro'>Erro ao buscar dados: " . $e->getMessage() . "</p>";
         }
     }
-    ?>
+}
+?>
 </body>
 </html>
