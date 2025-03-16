@@ -362,7 +362,7 @@ h1 {
     .footer {
         flex-direction: column; /* Coloca os elementos em coluna */
         align-items: flex-start; /* Alinha os elementos à esquerda */
-        gap: 10px; /* Espaço entre os elementos */
+        gap: 0px; /* Espaço entre os elementos */
     }
 
     .metodo-pagamento {
@@ -384,7 +384,7 @@ h1 {
 
 /* Estilos do formulário */
 .form-container {
-    padding: 20px;
+    padding: 5px;
     background-color: #fff;
     box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
     display: flex;
@@ -392,7 +392,7 @@ h1 {
 }
 
 .form-group {
-    margin-bottom: 15px;
+    margin-bottom: 0px;
     flex: 1;
 }
 
