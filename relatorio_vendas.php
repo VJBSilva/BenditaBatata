@@ -142,6 +142,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
             // Função para formatar valores em reais
             function formatarReais($valor) {
+                if ($valor == 0) {
+                    return 'R$ 0,00'; // Trata valores zerados
+                }
                 return 'R$ ' . number_format($valor, 2, ',', '.');
             }
 
