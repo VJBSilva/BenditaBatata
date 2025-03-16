@@ -75,289 +75,363 @@ $pedidos = carregarPedidos($pdo);
     <title>Visualizar Pedidos - Bendita Batata</title>
     <style>
         /* Estilos da página de visualização de pedidos */
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f8f9fa;
-            margin: 0;
-            padding: 20px;
-        }
-        h1 {
-            text-align: center;
-            color: #333;
-        }
-        #pedidos-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-        }
-        .pedido {
-            background-color: #fff;
-            border: 1px solid #ddd;
-            padding: 20px;
-            border-radius: 5px;
-            flex: 0 0 auto;
-            width: auto;
-            max-width: 100%;
-            display: flex;
-            flex-direction: column;
-            height: auto;
-        }
-        .pedido h2 {
-            margin-top: 0;
-        }
-        .pedido p {
-            margin: 5px 0;
-        }
-        .pedido ul {
-            margin: 10px 0;
-            padding-left: 20px;
-        }
-        .pedido ul li {
-            list-style-type: none;
-        }
-        .botoes-pedido {
-            display: flex;
-            gap: 5px;
-            justify-content: flex-end;
-            width: 100%;
-            margin-top: auto;
-        }
-        .botoes-pedido button {
-            flex: 0 0 auto;
-            min-width: 56px;
-            max-width: 64px;
-            text-align: center;
-            background-color: #007bff;
-            color: #fff;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 3px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        .botoes-pedido button:hover {
-            background-color: #0056b3;
-        }
-        .botoes-pedido button.finalizado {
-            background-color: #28a745;
-        }
-        .botoes-pedido button.finalizado:hover {
-            background-color: #218838;
-        }
-        .botoes-pedido button.excluir {
-            background-color: #dc3545;
-        }
-        .botoes-pedido button.excluir:hover {
-            background-color: #c82333;
-        }
+        /* Estilos gerais */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+    margin: 0;
+    padding: 20px;
+}
 
-        /* Estilos do pop-up de alteração */
-        .popup {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-        .popup-content {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 5px;
-            width: 95%;
-            max-width: 1200px;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            display: flex;
-            flex-direction: column;
-            position: relative;
-        }
-        .popup-header {
-            text-align: center;
-            font-size: 1.5em;
-            font-weight: bold;
-            margin-bottom: 20px;
-        }
-        .container {
-            flex: 1;
-            overflow-y: auto;
-            padding: 0 20px;
-        }
-        .produto {
-            background-color: #fff;
-            border: 1px solid #ddd;
-            padding: 5px;
-            margin-bottom: 5px;
-            border-radius: 5px;
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-        .linha-superior {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .controle-quantidade {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        .produto button {
-            background-color: #007bff;
-            color: #fff;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 3px;
-            cursor: pointer;
-            width: 30px;
-            height: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-        }
-        .produto button:hover {
-            background-color: #0056b3;
-        }
-        .produto input {
-            width: 20px;
-            height: 20px;
-            text-align: center;
-            border: 1px solid #ddd;
-            border-radius: 3px;
-            padding: 5px;
-            font-size: 14px;
-        }
-        .adicionais {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .adicional {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        .adicional input[type="checkbox"] {
-            appearance: none;
-            width: 16px;
-            height: 16px;
-            border: 2px solid #28a745;
-            border-radius: 3px;
-            cursor: pointer;
-            position: relative;
-        }
-        .adicional input[type="checkbox"]:checked {
-            background-color: #28a745;
-        }
-        .adicional input[type="checkbox"]:checked::after {
-            content: '✔';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: white;
-            font-size: 12px;
-        }
-        .adicional input[type="checkbox"]:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        .footer {
-            background-color: #fff;
-            padding: 20px;
-            box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 20px;
-            position: sticky;
-            bottom: 0;
-        }
-        .footer .metodo-pagamento,
-        .footer .desconto,
-        .footer .total {
-            font-size: 1.5em;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .footer .metodo-pagamento label,
-        .footer .desconto label {
-            font-size: 1em;
-        }
-        .footer .metodo-pagamento input[type="radio"] {
-            width: 16px;
-            height: 16px;
-        }
-        .footer .desconto input {
-            padding: 5px;
-            font-size: 1em;
-            border: 1px solid #ddd;
-            border-radius: 3px;
-            width: 80px;
-        }
-        .footer button {
-            background-color: #28a745;
-            color: #fff;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1em;
-        }
-        .footer button:hover {
-            background-color: #218838;
-        }
-        .form-container {
-            padding: 20px;
-            background-color: #fff;
-            box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
-            display: flex;
-            gap: 20px;
-        }
-        .form-group {
-            margin-bottom: 15px;
-            flex: 1;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-size: 14px;
-        }
-        .form-group textarea {
-            width: 100%;
-            height: 25px;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 3px;
-            font-size: 14px;
-        }
-        .form-group input[type="text"] {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 3px;
-            font-size: 14px;
-        }
-        .close-popup {
-            position: absolute;
-            top: 10px;
-            right: 15px;
-            font-size: 24px;
-            font-weight: bold;
-            color: red;
-            cursor: pointer;
-        }
-        .close-popup:hover {
-            color: darkred;
-        }
+h1 {
+    text-align: center;
+    color: #333;
+}
+
+#pedidos-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.pedido {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    padding: 20px;
+    border-radius: 5px;
+    flex: 0 0 auto;
+    width: auto;
+    max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    height: auto;
+}
+
+.pedido h2 {
+    margin-top: 0;
+}
+
+.pedido p {
+    margin: 5px 0;
+}
+
+.pedido ul {
+    margin: 10px 0;
+    padding-left: 20px;
+}
+
+.pedido ul li {
+    list-style-type: none;
+}
+
+.botoes-pedido {
+    display: flex;
+    gap: 5px;
+    justify-content: flex-end;
+    width: 100%;
+    margin-top: auto;
+}
+
+.botoes-pedido button {
+    flex: 0 0 auto;
+    min-width: 56px;
+    max-width: 64px;
+    text-align: center;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.botoes-pedido button:hover {
+    background-color: #0056b3;
+}
+
+.botoes-pedido button.finalizado {
+    background-color: #28a745;
+}
+
+.botoes-pedido button.finalizado:hover {
+    background-color: #218838;
+}
+
+.botoes-pedido button.excluir {
+    background-color: #dc3545;
+}
+
+.botoes-pedido button.excluir:hover {
+    background-color: #c82333;
+}
+
+/* Estilos do pop-up de alteração */
+.popup {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.popup-content {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    width: 95%;
+    max-width: 1200px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.popup-header {
+    text-align: center;
+    font-size: 1.5em;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 20px;
+}
+
+.produto {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    padding: 5px;
+    margin-bottom: 5px;
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.linha-superior {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.controle-quantidade {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.produto button {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+}
+
+.produto button:hover {
+    background-color: #0056b3;
+}
+
+.produto input {
+    width: 20px;
+    height: 20px;
+    text-align: center;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    padding: 5px;
+    font-size: 14px;
+}
+
+.adicionais {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.adicional {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.adicional input[type="checkbox"] {
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #28a745;
+    border-radius: 3px;
+    cursor: pointer;
+    position: relative;
+}
+
+.adicional input[type="checkbox"]:checked {
+    background-color: #28a745;
+}
+
+.adicional input[type="checkbox"]:checked::after {
+    content: '✔';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 12px;
+}
+
+.adicional input[type="checkbox"]:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Estilos do footer (rodapé do pop-up) */
+.footer {
+    background-color: #fff;
+    padding: 20px;
+    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    position: sticky;
+    bottom: 0;
+}
+
+.metodo-pagamento {
+    display: flex;
+    flex-direction: column;
+    gap: 5px; /* Espaço entre o texto e os botões de rádio */
+}
+
+.opcoes-pagamento {
+    display: flex;
+    gap: 10px; /* Espaço entre os botões de rádio */
+}
+
+.desconto-total {
+    display: flex;
+    align-items: center;
+    gap: 20px; /* Espaço entre desconto e total */
+}
+
+.desconto label,
+.total {
+    font-size: 1em;
+}
+
+.desconto input {
+    padding: 5px;
+    font-size: 1em;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    width: 80px;
+}
+
+.finalizar-pedido {
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+}
+
+.finalizar-pedido:hover {
+    background-color: #218838;
+}
+
+/* Estilos para mobile */
+@media (max-width: 768px) {
+    .footer {
+        flex-direction: column; /* Coloca os elementos em coluna */
+        align-items: flex-start; /* Alinha os elementos à esquerda */
+        gap: 10px; /* Espaço entre os elementos */
+    }
+
+    .metodo-pagamento {
+        width: 100%; /* Ocupa toda a largura */
+    }
+
+    .desconto-total {
+        width: 100%; /* Ocupa toda a largura */
+        flex-direction: column; /* Coloca desconto e total em coluna */
+        gap: 10px; /* Espaço entre desconto e total */
+    }
+
+    .finalizar-pedido {
+        width: 100%; /* Ocupa toda a largura */
+        margin-top: 10px; /* Espaço acima do botão */
+    }
+}
+
+/* Estilos do formulário */
+.form-container {
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    gap: 20px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+    flex: 1;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 14px;
+}
+
+.form-group textarea {
+    width: 100%;
+    height: 25px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    font-size: 14px;
+}
+
+.form-group input[type="text"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    font-size: 14px;
+}
+
+/* Estilo do botão de fechar pop-up */
+.close-popup {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 24px;
+    font-weight: bold;
+    color: red;
+    cursor: pointer;
+}
+
+.close-popup:hover {
+    color: darkred;
+}
     </style>
 </head>
 <body>
@@ -450,21 +524,30 @@ $pedidos = carregarPedidos($pdo);
                 </div>
             </div>
             <div class="footer">
-                <div class="metodo-pagamento">
-                    <span>Método de Pagamento:</span>
-                    <label><input type="radio" name="metodo_pagamento_alterar" value="cartao" checked> Cartão</label>
-                    <label><input type="radio" name="metodo_pagamento_alterar" value="pix"> PIX</label>
-                    <label><input type="radio" name="metodo_pagamento_alterar" value="dinheiro"> Dinheiro</label>
-                </div>
-                <div class="desconto">
-                    <label for="desconto-alterar">Desconto (R$):</label>
-                    <input type="text" id="desconto-alterar" name="desconto" value="0.00">
-                </div>
-                <div class="total">
-                    Total a Pagar: R$ <span id="total-alterar">0.00</span>
-                </div>
-                <button onclick="salvarAlteracoes()">Salvar Alterações</button>
-            </div>
+    <!-- Método de Pagamento -->
+    <div class="metodo-pagamento">
+        <span>Método de Pagamento:</span>
+        <div class="opcoes-pagamento">
+            <label><input type="radio" name="metodo_pagamento_alterar" value="cartao" checked> Cartão</label>
+            <label><input type="radio" name="metodo_pagamento_alterar" value="pix"> PIX</label>
+            <label><input type="radio" name="metodo_pagamento_alterar" value="dinheiro"> Dinheiro</label>
+        </div>
+    </div>
+
+    <!-- Desconto e Total -->
+    <div class="desconto-total">
+        <div class="desconto">
+            <label for="desconto-alterar">Desconto (R$):</label>
+            <input type="text" id="desconto-alterar" name="desconto" value="0.00">
+        </div>
+        <div class="total">
+            Total a Pagar: R$ <span id="total-alterar">0.00</span>
+        </div>
+    </div>
+
+    <!-- Botão Salvar Alterações -->
+    <button class="finalizar-pedido" onclick="salvarAlteracoes()">Salvar Alterações</button>
+</div>
         </div>
     </div>
 
