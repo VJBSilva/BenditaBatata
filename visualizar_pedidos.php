@@ -372,6 +372,7 @@ h1 {
     .desconto-total {
         width: 100%; /* Ocupa toda a largura */
         flex-direction: column; /* Coloca desconto e total em coluna */
+        align-items: flex-start;
         gap: 10px; /* Espaço entre desconto e total */
     }
 
