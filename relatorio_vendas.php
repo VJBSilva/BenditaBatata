@@ -142,9 +142,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
             // Função para formatar valores em reais
             function formatarReais($valor) {
-                if ($valor == 0) {
-                    return 'R$ 0,00'; // Trata valores zerados
-                }
                 return 'R$ ' . number_format($valor, 2, ',', '.');
             }
 
@@ -161,7 +158,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                     foreach ($dados as $linha) {
                         echo "<tr>";
                         foreach ($linha as $chave => $valor) {
-                            if (in_array($chave, ['total_bruto', 'total_desconto', 'total_liquido'])) {
+                            if (in_array($chave, ['total_bruto', 'desconto', 'total_liquido', 'total_desconto'])) {
                                 echo "<td>" . formatarReais($valor) . "</td>";
                             } else {
                                 echo "<td>$valor</td>";
