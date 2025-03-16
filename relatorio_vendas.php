@@ -94,18 +94,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         try {
             // Buscar vendas no período
             $stmt = $pdo->prepare("
-                SELECT p.id, p.dataPedido, p.metodo_pagamento, SUM(ip.quantidade * ip.valor_unitario) AS total
+                SELECT p.id, p.dataPedido, p.metodo_pagamento, SUM(ip.quantidade * ip.valor_unitario) AS total, p.desconto
                 FROM pedidos p
                 JOIN itens_pedido ip ON p.id = ip.pedido_id
                 WHERE p.dataPedido BETWEEN ? AND ?
-                GROUP BY p.id, p.dataPedido, p.metodo_pagamento
+                GROUP BY p.id, p.dataPedido, p.metodo_pagamento, p.desconto
             ");
             $stmt->execute([$data_inicio_timestamp, $data_fim_timestamp]);
             $vendas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             // Totalização por tipo de pagamento
             $stmt = $pdo->prepare("
-                SELECT p.metodo_pagamento, SUM(ip.quantidade * ip.valor_unitario) AS total
+                SELECT p.metodo_pagamento, SUM(ip.quantidade * ip.valor_unitario - p.desconto) AS total
                 FROM pedidos p
                 JOIN itens_pedido ip ON p.id = ip.pedido_id
                 WHERE p.dataPedido BETWEEN ? AND ?
@@ -116,7 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
             // Totalização por categoria
             $stmt = $pdo->prepare("
-                SELECT c.nome AS categoria, SUM(ip.quantidade * ip.valor_unitario) AS total
+                SELECT c.nome AS categoria, SUM(ip.quantidade * ip.valor_unitario - p.desconto) AS total
                 FROM pedidos p
                 JOIN itens_pedido ip ON p.id = ip.pedido_id
                 JOIN produtos pr ON ip.produto_id = pr.id
@@ -151,12 +151,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             }
 
             // Exibir os resultados
-            exibirTabela($vendas, ['ID Pedido', 'Data', 'Método de Pagamento', 'Total'], 'Vendas no Período');
+            exibirTabela($vendas, ['ID Pedido', 'Data', 'Método de Pagamento', 'Total', 'Desconto'], 'Vendas no Período');
             exibirTabela($total_por_pagamento, ['Método de Pagamento', 'Total'], 'Totalização por Tipo de Pagamento');
             exibirTabela($total_por_categoria, ['Categoria', 'Total'], 'Totalização por Categoria');
 
-            // Calcular o total geral
-            $total_geral = array_sum(array_column($vendas, 'total'));
+            // Calcular o total geral considerando os descontos
+            $total_geral = 0;
+            foreach ($vendas as $venda) {
+                $total_geral += ($venda['total'] - $venda['desconto']);
+            }
 
             // Exibir o total geral
             echo "<h3>Total Geral: R$ " . number_format($total_geral, 2, ',', '.') . "</h3>";
