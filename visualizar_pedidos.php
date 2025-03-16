@@ -403,7 +403,7 @@ h1 {
 }
 
 .form-group textarea {
-    width: 100%;
+    width: 30%;
     height: 25px;
     padding: 10px;
     border: 1px solid #ddd;
