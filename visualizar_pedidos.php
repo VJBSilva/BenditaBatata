@@ -127,7 +127,7 @@ h1 {
 .botoes-pedido {
     display: flex;
     gap: 5px;
-    justify-content: flex-end;
+    justify-content: flex-star;
     width: 100%;
     margin-top: auto;
 }
