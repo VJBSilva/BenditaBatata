@@ -244,11 +244,29 @@ $pedidos = carregarPedidos($pdo);
             gap: 5px;
         }
         .adicional input[type="checkbox"] {
+            appearance: none;
             width: 16px;
             height: 16px;
+            border: 2px solid #28a745;
+            border-radius: 3px;
+            cursor: pointer;
+            position: relative;
         }
-        .adicional label {
-            font-size: 14px;
+        .adicional input[type="checkbox"]:checked {
+            background-color: #28a745;
+        }
+        .adicional input[type="checkbox"]:checked::after {
+            content: '✔';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 12px;
+        }
+        .adicional input[type="checkbox"]:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
         .footer {
             background-color: #fff;
@@ -327,33 +345,6 @@ $pedidos = carregarPedidos($pdo);
             border-radius: 3px;
             font-size: 14px;
         }
-        /* Estilo do pop-up */
-        .popup {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-        .popup-content {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 5px;
-            width: 95%;
-            max-width: 1200px;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            display: flex;
-            flex-direction: column;
-            position: relative; /* Garante que o botão de fechar seja posicionado corretamente */
-        }
-        /* Estilo do botão de fechar */
         .close-popup {
             position: absolute;
             top: 10px;
@@ -366,35 +357,6 @@ $pedidos = carregarPedidos($pdo);
         .close-popup:hover {
             color: darkred;
         }
-        /* Estilo para os checkboxes verdes */
-.adicional input[type="checkbox"] {
-    appearance: none;
-    width: 16px;
-    height: 16px;
-    border: 2px solid #28a745;
-    border-radius: 3px;
-    cursor: pointer;
-    position: relative;
-}
-
-.adicional input[type="checkbox"]:checked {
-    background-color: #28a745;
-}
-
-.adicional input[type="checkbox"]:checked::after {
-    content: '✔';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: white;
-    font-size: 12px;
-}
-
-.adicional input[type="checkbox"]:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
     </style>
 </head>
 <body>
@@ -405,7 +367,7 @@ $pedidos = carregarPedidos($pdo);
         <?php foreach ($pedidos as $pedido): ?>
             <div class="pedido">
                 <h2>Pedido <?= $pedido['id'] ?></h2>
-                <p><strong>Senha:</strong> <?= $pedido['senha'] ?? 'Nenhuma' ?></p> <!-- Exibir a senha -->
+                <p><strong>Senha:</strong> <?= $pedido['senha'] ?? 'Nenhuma' ?></p>
                 <p><strong>Itens:</strong></p>
                 <ul>
                     <?php
@@ -460,19 +422,18 @@ $pedidos = carregarPedidos($pdo);
                                 </div>
                             </div>
                             <div class="adicionais">
-    <?php
-    // Carregar adicionais da categoria do produto
-    $categoria_id = $produto['categoria_id'];
-    if (isset($adicionaisPorCategoria[$categoria_id])) {
-        foreach ($adicionaisPorCategoria[$categoria_id] as $adicional): ?>
-            <div class="adicional">
-                <input type="checkbox" id="adicional_<?= $adicional['id'] ?>_produto_<?= $produto['id'] ?>" name="adicionais[]" value="<?= $adicional['id'] ?>" disabled>
-                <label for="adicional_<?= $adicional['id'] ?>_produto_<?= $produto['id'] ?>"><?= $adicional['nome'] ?></label>
-            </div>
-        <?php endforeach;
-    }
-    ?>
-</div>
+                                <?php
+                                $categoria_id = $produto['categoria_id'];
+                                if (isset($adicionaisPorCategoria[$categoria_id])) {
+                                    foreach ($adicionaisPorCategoria[$categoria_id] as $adicional): ?>
+                                        <div class="adicional">
+                                            <input type="checkbox" id="adicional_<?= $adicional['id'] ?>_produto_<?= $produto['id'] ?>" name="adicionais[]" value="<?= $adicional['id'] ?>" disabled>
+                                            <label for="adicional_<?= $adicional['id'] ?>_produto_<?= $produto['id'] ?>"><?= $adicional['nome'] ?></label>
+                                        </div>
+                                    <?php endforeach;
+                                }
+                                ?>
+                            </div>
                         </div>
                     <?php endforeach; ?>
                 <?php endforeach; ?>
@@ -667,6 +628,8 @@ $pedidos = carregarPedidos($pdo);
                 valor--;
                 input.value = valor;
                 atualizarTotal();
+                const produtoId = id.split('_')[1];
+                atualizarCheckboxes(produtoId);
             }
         }
 
@@ -676,58 +639,32 @@ $pedidos = carregarPedidos($pdo);
             valor++;
             input.value = valor;
             atualizarTotal();
+            const produtoId = id.split('_')[1];
+            atualizarCheckboxes(produtoId);
         }
 
         function validarQuantidade(input) {
             input.value = input.value.replace(/[^0-9]/g, '');
+            if (input.value === '') {
+                input.value = 0;
+            }
             atualizarTotal();
+            const produtoId = input.id.split('_')[1];
+            atualizarCheckboxes(produtoId);
         }
-        // Função para habilitar/desabilitar checkboxes com base na quantidade
-function atualizarCheckboxes(produtoId) {
-    const quantidadeInput = document.getElementById(`produto_${produtoId}`);
-    const quantidade = parseInt(quantidadeInput.value) || 0;
-    const checkboxes = document.querySelectorAll(`.produto[data-id="${produtoId}"] .adicionais input[type="checkbox"]`);
 
-    checkboxes.forEach(checkbox => {
-        checkbox.disabled = quantidade === 0;
-        if (quantidade === 0) {
-            checkbox.checked = false; // Desmarca o checkbox se a quantidade for zero
+        function atualizarCheckboxes(produtoId) {
+            const quantidadeInput = document.getElementById(`produto_${produtoId}`);
+            const quantidade = parseInt(quantidadeInput.value) || 0;
+            const checkboxes = document.querySelectorAll(`.produto[data-id="${produtoId}"] .adicionais input[type="checkbox"]`);
+
+            checkboxes.forEach(checkbox => {
+                checkbox.disabled = quantidade === 0;
+                if (quantidade === 0) {
+                    checkbox.checked = false; // Desmarca o checkbox se a quantidade for zero
+                }
+            });
         }
-    });
-}
-
-// Modificar as funções de quantidade para chamar a função acima
-function aumentarQuantidade(id) {
-    const input = document.getElementById(id);
-    let quantidade = parseInt(input.value) || 0;
-    quantidade++;
-    input.value = quantidade;
-    calcularTotal();
-    const produtoId = id.split('_')[1];
-    atualizarCheckboxes(produtoId);
-}
-
-function diminuirQuantidade(id) {
-    const input = document.getElementById(id);
-    let quantidade = parseInt(input.value) || 0;
-    if (quantidade > 0) {
-        quantidade--;
-        input.value = quantidade;
-        calcularTotal();
-        const produtoId = id.split('_')[1];
-        atualizarCheckboxes(produtoId);
-    }
-}
-
-function validarQuantidade(input) {
-    input.value = input.value.replace(/[^0-9]/g, '');
-    if (input.value === '') {
-        input.value = 0;
-    }
-    calcularTotal();
-    const produtoId = input.id.split('_')[1];
-    atualizarCheckboxes(produtoId);
-}
 
         function marcarComoFinalizado(pedidoId) {
             if (confirm("Tem certeza de que deseja marcar este pedido como finalizado?")) {
