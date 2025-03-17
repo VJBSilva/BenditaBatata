@@ -126,11 +126,29 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             gap: 5px;
         }
         .adicional input[type="checkbox"] {
+            appearance: none;
             width: 16px;
             height: 16px;
+            border: 2px solid #28a745;
+            border-radius: 3px;
+            cursor: pointer;
+            position: relative;
         }
-        .adicional label {
-            font-size: 14px;
+        .adicional input[type="checkbox"]:checked {
+            background-color: #28a745;
+        }
+        .adicional input[type="checkbox"]:checked::after {
+            content: '✔';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 12px;
+        }
+        .adicional input[type="checkbox"]:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
         .footer {
             background-color: #fff;
@@ -140,31 +158,35 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             align-items: center;
             justify-content: space-between;
             gap: 20px;
+            position: sticky;
+            bottom: 0;
         }
-        .footer .metodo-pagamento,
-        .footer .desconto,
-        .footer .total {
-            font-size: 1.5em;
+        .metodo-pagamento {
             display: flex;
-            align-items: center;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .opcoes-pagamento {
+            display: flex;
             gap: 10px;
         }
-        .footer .metodo-pagamento label,
-        .footer .desconto label {
+        .desconto-total {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .desconto label,
+        .total {
             font-size: 1em;
         }
-        .footer .metodo-pagamento input[type="radio"] {
-            width: 16px;
-            height: 16px;
-        }
-        .footer .desconto input {
+        .desconto input {
             padding: 5px;
             font-size: 1em;
             border: 1px solid #ddd;
             border-radius: 3px;
             width: 80px;
         }
-        .footer button {
+        .finalizar-pedido {
             background-color: #28a745;
             color: #fff;
             border: none;
@@ -173,8 +195,28 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             cursor: pointer;
             font-size: 1em;
         }
-        .footer button:hover {
+        .finalizar-pedido:hover {
             background-color: #218838;
+        }
+        @media (max-width: 768px) {
+            .footer {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            .metodo-pagamento {
+                width: 100%;
+            }
+            .desconto-total {
+                width: 100%;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            .finalizar-pedido {
+                width: 100%;
+                margin-top: 10px;
+            }
         }
         .form-container {
             padding: 20px;
@@ -194,7 +236,7 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         }
         .form-group textarea {
             width: 100%;
-            height: 25px; /* Reduzido pela metade */
+            height: 25px;
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 3px;
@@ -207,35 +249,6 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             border-radius: 3px;
             font-size: 14px;
         }
-        /* Estilo para os checkboxes verdes */
-.adicional input[type="checkbox"] {
-    appearance: none;
-    width: 16px;
-    height: 16px;
-    border: 2px solid #28a745;
-    border-radius: 3px;
-    cursor: pointer;
-    position: relative;
-}
-
-.adicional input[type="checkbox"]:checked {
-    background-color: #28a745;
-}
-
-.adicional input[type="checkbox"]:checked::after {
-    content: '✔';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: white;
-    font-size: 12px;
-}
-
-.adicional input[type="checkbox"]:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
     </style>
 </head>
 <body>
@@ -256,59 +269,60 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                         </div>
                     </div>
                     <div class="adicionais">
-    <?php
-    // Carregar adicionais da categoria do produto
-    $categoria_id = $produto['categoria_id'];
-    if (isset($adicionaisPorCategoria[$categoria_id])) {
-        foreach ($adicionaisPorCategoria[$categoria_id] as $adicional): ?>
-            <div class="adicional">
-                <input type="checkbox" id="adicional_<?= $adicional['id'] ?>_produto_<?= $produto['id'] ?>" name="adicionais[]" value="<?= $adicional['id'] ?>" disabled>
-                <label for="adicional_<?= $adicional['id'] ?>_produto_<?= $produto['id'] ?>"><?= $adicional['nome'] ?></label>
-            </div>
-        <?php endforeach;
-    }
-    ?>
-</div>
+                        <?php
+                        $categoria_id = $produto['categoria_id'];
+                        if (isset($adicionaisPorCategoria[$categoria_id])) {
+                            foreach ($adicionaisPorCategoria[$categoria_id] as $adicional): ?>
+                                <div class="adicional">
+                                    <input type="checkbox" id="adicional_<?= $adicional['id'] ?>_produto_<?= $produto['id'] ?>" name="adicionais[]" value="<?= $adicional['id'] ?>" disabled>
+                                    <label for="adicional_<?= $adicional['id'] ?>_produto_<?= $produto['id'] ?>"><?= $adicional['nome'] ?></label>
+                                </div>
+                            <?php endforeach;
+                        }
+                        ?>
+                    </div>
                 </div>
             <?php endforeach; ?>
         <?php endforeach; ?>
     </div>
 
     <!-- Formulário para Observações e Senha -->
-<div class="form-container">
-    <div class="form-group" style="margin-right: 20px;"> <!-- Adicionado margin-right -->
-        <label for="observacao">Observações:</label>
-        <textarea id="observacao" name="observacao" placeholder="Digite observações (opcional)"></textarea>
+    <div class="form-container">
+        <div class="form-group" style="margin-right: 20px;">
+            <label for="observacao">Observações:</label>
+            <textarea id="observacao" name="observacao" placeholder="Digite observações (opcional)"></textarea>
+        </div>
+        <div class="form-group">
+            <label for="senha">Senha do Pedido:</label>
+            <input type="text" id="senha" name="senha" placeholder="Digite a senha" maxlength="5" style="width: 150px;">
+        </div>
     </div>
-    <div class="form-group">
-        <label for="senha">Senha do Pedido:</label>
-        <input type="text" id="senha" name="senha" placeholder="Digite a senha" maxlength="5" style="width: 150px;"> <!-- Alterado tamanho e limite -->
-    </div>
-</div>
 
     <!-- Rodapé Fixo -->
     <div class="footer">
         <!-- Método de Pagamento -->
         <div class="metodo-pagamento">
             <span>Método de Pagamento:</span>
-            <label><input type="radio" name="metodo_pagamento" value="cartao" checked> Cartão</label>
-            <label><input type="radio" name="metodo_pagamento" value="pix"> PIX</label>
-            <label><input type="radio" name="metodo_pagamento" value="dinheiro"> Dinheiro</label>
+            <div class="opcoes-pagamento">
+                <label><input type="radio" name="metodo_pagamento" value="cartao" checked> Cartão</label>
+                <label><input type="radio" name="metodo_pagamento" value="pix"> PIX</label>
+                <label><input type="radio" name="metodo_pagamento" value="dinheiro"> Dinheiro</label>
+            </div>
         </div>
 
-        <!-- Desconto -->
-        <div class="desconto">
-            <label for="desconto">Desconto (R$):</label>
-            <input type="text" id="desconto" name="desconto" value="0.00" oninput="calcularTotal()">
-        </div>
-
-        <!-- Total a Pagar -->
-        <div class="total">
-            Total a Pagar: R$ <span id="total">0.00</span>
+        <!-- Desconto e Total -->
+        <div class="desconto-total">
+            <div class="desconto">
+                <label for="desconto">Desconto (R$):</label>
+                <input type="text" id="desconto" name="desconto" value="0.00" oninput="calcularTotal()">
+            </div>
+            <div class="total">
+                Total a Pagar: R$ <span id="total">0.00</span>
+            </div>
         </div>
 
         <!-- Botão Finalizar Pedido -->
-        <button onclick="finalizarPedido()">Finalizar Pedido</button>
+        <button class="finalizar-pedido" onclick="finalizarPedido()">Finalizar Pedido</button>
     </div>
 
     <script>
@@ -319,6 +333,8 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             quantidade++;
             input.value = quantidade;
             calcularTotal();
+            const produtoId = id.split('_')[1];
+            atualizarCheckboxes(produtoId);
         }
 
         // Função para diminuir a quantidade
@@ -329,6 +345,8 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                 quantidade--;
                 input.value = quantidade;
                 calcularTotal();
+                const produtoId = id.split('_')[1];
+                atualizarCheckboxes(produtoId);
             }
         }
 
@@ -339,6 +357,8 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                 input.value = 0;
             }
             calcularTotal();
+            const produtoId = input.id.split('_')[1];
+            atualizarCheckboxes(produtoId);
         }
 
         // Função para calcular o total a pagar
@@ -362,52 +382,21 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 
             document.getElementById('total').textContent = total.toFixed(2);
         }
-// Função para habilitar/desabilitar checkboxes com base na quantidade
-function atualizarCheckboxes(produtoId) {
-    const quantidadeInput = document.getElementById(`produto_${produtoId}`);
-    const quantidade = parseInt(quantidadeInput.value) || 0;
-    const checkboxes = document.querySelectorAll(`.produto[data-id="${produtoId}"] .adicionais input[type="checkbox"]`);
 
-    checkboxes.forEach(checkbox => {
-        checkbox.disabled = quantidade === 0;
-        if (quantidade === 0) {
-            checkbox.checked = false; // Desmarca o checkbox se a quantidade for zero
+        // Função para habilitar/desabilitar checkboxes com base na quantidade
+        function atualizarCheckboxes(produtoId) {
+            const quantidadeInput = document.getElementById(`produto_${produtoId}`);
+            const quantidade = parseInt(quantidadeInput.value) || 0;
+            const checkboxes = document.querySelectorAll(`.produto[data-id="${produtoId}"] .adicionais input[type="checkbox"]`);
+
+            checkboxes.forEach(checkbox => {
+                checkbox.disabled = quantidade === 0;
+                if (quantidade === 0) {
+                    checkbox.checked = false; // Desmarca o checkbox se a quantidade for zero
+                }
+            });
         }
-    });
-}
 
-// Modificar as funções de quantidade para chamar a função acima
-function aumentarQuantidade(id) {
-    const input = document.getElementById(id);
-    let quantidade = parseInt(input.value) || 0;
-    quantidade++;
-    input.value = quantidade;
-    calcularTotal();
-    const produtoId = id.split('_')[1];
-    atualizarCheckboxes(produtoId);
-}
-
-function diminuirQuantidade(id) {
-    const input = document.getElementById(id);
-    let quantidade = parseInt(input.value) || 0;
-    if (quantidade > 0) {
-        quantidade--;
-        input.value = quantidade;
-        calcularTotal();
-        const produtoId = id.split('_')[1];
-        atualizarCheckboxes(produtoId);
-    }
-}
-
-function validarQuantidade(input) {
-    input.value = input.value.replace(/[^0-9]/g, '');
-    if (input.value === '') {
-        input.value = 0;
-    }
-    calcularTotal();
-    const produtoId = input.id.split('_')[1];
-    atualizarCheckboxes(produtoId);
-}
         // Função para finalizar o pedido
         function finalizarPedido() {
             const produtos = document.querySelectorAll('.produto');
