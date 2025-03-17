@@ -226,36 +226,29 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         .finalizar-pedido:hover {
             background-color: #218838;
         }
-        @media (max-width: 700px) {
-            .footer {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 30px;
-            }
-            .form-container {
-                flex-direction: row; /* Mantém os campos lado a lado */
-                gap: 30px;
-            }
-            .form-group textarea {
-                width: 100%; /* Largura reduzida pela metade */
-            }
-            .form-group input[type="text"] {
-                width: 30%; /* Largura reduzida pela metade */
-            }
-            .metodo-pagamento {
-                width: 100%;
-            }
-            .desconto-total {
-                width: 100%;
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 10px;
-            }
-            .finalizar-pedido {
-                width: 100%;
-                margin-top: 10px;
-            }
-        }
+        @media (max-width: 768px) {
+    .footer {
+        flex-direction: column; /* Coloca os elementos em coluna */
+        align-items: flex-start; /* Alinha os elementos à esquerda */
+        gap: 0px; /* Espaço entre os elementos */
+    }
+
+    .metodo-pagamento {
+        width: 100%; /* Ocupa toda a largura */
+    }
+
+    .desconto-total {
+        width: 100%; /* Ocupa toda a largura */
+        flex-direction: column; /* Coloca desconto e total em coluna */
+        align-items: flex-start;
+        gap: 10px; /* Espaço entre desconto e total */
+    }
+
+    .finalizar-pedido {
+        width: 100%; /* Ocupa toda a largura */
+        margin-top: 10px; /* Espaço acima do botão */
+    }
+}
     </style>
 </head>
 <body>
