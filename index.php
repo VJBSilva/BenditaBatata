@@ -237,7 +237,7 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                 gap: 10px;
             }
             .form-group textarea {
-                width: 70%; /* Largura reduzida pela metade */
+                width: 100%; /* Largura reduzida pela metade */
             }
             .form-group input[type="text"] {
                 width: 30%; /* Largura reduzida pela metade */
