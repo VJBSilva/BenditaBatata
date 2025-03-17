@@ -1,6 +1,8 @@
 <?php
 require 'conexao.php';
 
+verificarLogin(); // Verifica se o usuário está logado
+
 // Função para carregar os pedidos pendentes
 function carregarPedidos($pdo) {
     $stmt = $pdo->query("SELECT * FROM pedidos WHERE status = 'pendente'");
