@@ -81,6 +81,8 @@
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     require 'conexao.php'; // Arquivo de conexão com o banco de dados
 
+    verificarLogin(); // Verifica se o usuário está logado
+    
     // Definir datas e horas padrão (hoje)
     $data_inicio = isset($_GET['data_inicio']) ? $_GET['data_inicio'] : date('Y-m-d');
     $hora_inicio = isset($_GET['hora_inicio']) ? $_GET['hora_inicio'] : '00:00';
