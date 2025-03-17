@@ -183,7 +183,7 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             font-size: 14px;
         }
         .form-group input[type="text"] {
-            width: 100%;
+            width: 150px; /* Tamanho fixo para o campo de senha */
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 3px;
@@ -235,6 +235,12 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             .form-container {
                 flex-direction: column;
                 gap: 10px;
+            }
+            .form-group textarea {
+                width: 100%;
+            }
+            .form-group input[type="text"] {
+                width: 100%; /* Campo de senha ocupa toda a largura em mobile */
             }
             .metodo-pagamento {
                 width: 100%;
