@@ -1,5 +1,6 @@
 <?php
 require 'conexao.php';
+verificarLogin(); // Verifica se o usuário está logado
 
 // Lógica para salvar/editar produto
 if (isset($_POST['salvar'])) {
