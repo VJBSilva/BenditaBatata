@@ -1,5 +1,6 @@
 <?php
 require 'conexao.php';
+verificarLogin(); // Verifica se o usuário está logado
 
 // Carregar produtos com categorias
 $stmt = $pdo->query("
