@@ -69,7 +69,7 @@ $tipo_usuario = $_COOKIE['tipo_usuario'] ?? 'user';
             <div class="sub-menu" id="subMenu">
                 <button onclick="window.location.href='cadastro_categoria.php'">Cadastro de Categoria</button>
                 <button onclick="window.location.href='cadastro_produto.php'">Cadastro de Produto</button>
-                <button onclick="window.location.href='cadastro_opcional.php'">Cadastro de Opcional</button>
+                <button onclick="window.location.href='cadastro_adicionais.php'">Cadastro de Opcional</button>
             </div>
         <?php endif; ?>
 
