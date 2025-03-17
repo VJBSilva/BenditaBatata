@@ -1,3 +1,40 @@
+<?php
+require 'conexao.php';
+
+// Carregar produtos com categorias
+$stmt = $pdo->query("
+    SELECT produtos.*, categorias.nome AS categoria_nome
+    FROM produtos
+    JOIN categorias ON produtos.categoria_id = categorias.id
+");
+$produtos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Agrupar produtos por categoria
+$produtosPorCategoria = [];
+foreach ($produtos as $produto) {
+    $categoria = $produto['categoria_nome'];
+    if (!isset($produtosPorCategoria[$categoria])) {
+        $produtosPorCategoria[$categoria] = [];
+    }
+    $produtosPorCategoria[$categoria][] = $produto;
+}
+
+// Carregar adicionais por categoria
+$adicionaisPorCategoria = [];
+$stmt = $pdo->query("
+    SELECT categoria_adicionais.categoria_id, adicionais.*
+    FROM categoria_adicionais
+    JOIN adicionais ON categoria_adicionais.adicional_id = adicionais.id
+");
+while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+    $categoria_id = $row['categoria_id'];
+    if (!isset($adicionaisPorCategoria[$categoria_id])) {
+        $adicionaisPorCategoria[$categoria_id] = [];
+    }
+    $adicionaisPorCategoria[$categoria_id][] = $row;
+}
+?>
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -278,7 +315,7 @@
         <div class="desconto-total">
             <div class="desconto">
                 <label for="desconto">Desconto (R$):</label>
-                <input type="text" id="desconto" name="desconto" value="0.00" oninput="calcularTotal()">
+                <input type="text" id="desconto" name="desconto" value="0.00" oninput="validarDesconto(this)">
             </div>
             <div class="total">
                 Total a Pagar: R$ <span id="total">0.00</span>
@@ -330,21 +367,46 @@
             const produtos = document.querySelectorAll('.produto');
             let total = 0;
 
+            // Soma o valor total dos produtos
             produtos.forEach(produto => {
                 const quantidadeInput = produto.querySelector('input');
                 const quantidade = parseInt(quantidadeInput.value) || 0;
-                const preco = parseFloat(produto.getAttribute('data-preco'));
+                const preco = parseFloat(produto.getAttribute('data-preco')) || 0;
                 total += quantidade * preco;
             });
 
-            // Aplicar desconto
-            const desconto = parseFloat(document.getElementById('desconto').value) || 0;
-            total -= desconto;
+            // Aplica o desconto
+            const descontoInput = document.getElementById('desconto');
+            let desconto = parseFloat(descontoInput.value) || 0;
 
-            // Garantir que o total não seja negativo
-            total = Math.max(total, 0);
+            // Garante que o desconto não seja maior que o total
+            if (desconto > total) {
+                desconto = total; // Define o desconto como o valor total
+                descontoInput.value = desconto.toFixed(2); // Atualiza o valor do campo de desconto
+            }
 
-            document.getElementById('total').textContent = total.toFixed(2);
+            // Calcula o total final
+            const totalFinal = total - desconto;
+
+            // Garante que o total final não seja negativo
+            const totalFinalAjustado = Math.max(totalFinal, 0);
+
+            // Atualiza o valor exibido
+            document.getElementById('total').textContent = totalFinalAjustado.toFixed(2);
+        }
+
+        // Função para validar o desconto enquanto o usuário digita
+        function validarDesconto(input) {
+            // Remove caracteres não numéricos
+            input.value = input.value.replace(/[^0-9.]/g, '');
+
+            // Garante que o valor seja um número válido
+            if (input.value === '' || isNaN(input.value)) {
+                input.value = '0.00';
+            }
+
+            // Recalcula o total
+            calcularTotal();
         }
 
         // Função para habilitar/desabilitar checkboxes com base na quantidade
