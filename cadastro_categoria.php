@@ -8,6 +8,18 @@ if (isset($_POST['salvar'])) {
     $nome = $_POST['nome'];
     $status = $_POST['status'];
 
+    // Verifica se a categoria já existe (apenas para cadastro, não para edição)
+    if (!$id) {
+        $stmt = $pdo->prepare("SELECT id FROM categorias WHERE nome = ?");
+        $stmt->execute([$nome]);
+        $categoriaExistente = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($categoriaExistente) {
+            echo "<script>alert('Categoria já cadastrada!');</script>";
+            exit();
+        }
+    }
+
     if ($id) {
         // Editar categoria existente
         $stmt = $pdo->prepare("UPDATE categorias SET nome = ?, status = ? WHERE id = ?");
@@ -18,6 +30,10 @@ if (isset($_POST['salvar'])) {
         $stmt->execute([$nome, $status]);
         $id = $pdo->lastInsertId();
     }
+
+    // Redirecionar para evitar reenvio do formulário
+    header("Location: cadastro_categoria.php");
+    exit();
 }
 
 // Lógica para excluir categoria
@@ -25,6 +41,10 @@ if (isset($_GET['excluir'])) {
     $id = $_GET['excluir'];
     $stmt = $pdo->prepare("DELETE FROM categorias WHERE id = ?");
     $stmt->execute([$id]);
+
+    // Redirecionar para evitar reenvio do formulário
+    header("Location: cadastro_categoria.php");
+    exit();
 }
 
 // Carregar categorias
@@ -110,15 +130,56 @@ $categorias = $stmt->fetchAll(PDO::FETCH_ASSOC);
         .actions button.delete:hover {
             background-color: #c82333;
         }
+
+        /* Estilo do overlay de loading */
+        #loadingOverlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        #loadingOverlay div {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
     <h1>Admin - Cadastro de Categorias</h1>
 
+    <!-- Overlay de Loading -->
+    <div id="loadingOverlay">
+        <div>
+            <p>Salvando...</p>
+            <div class="loader"></div>
+        </div>
+    </div>
+
     <!-- Formulário de Cadastro/Edição -->
     <div class="form-container">
         <h2>Cadastrar/Editar Categoria</h2>
-        <form method="POST" action="">
+        <form id="formCategoria" method="POST" action="">
             <input type="hidden" id="id" name="id">
             <input type="text" id="nome" name="nome" placeholder="Nome da Categoria" required>
             <select id="status" name="status" required>
@@ -174,5 +235,17 @@ $categorias = $stmt->fetchAll(PDO::FETCH_ASSOC);
         ";
     }
     ?>
+
+    <script>
+        // Exibe o loading ao enviar o formulário
+        document.getElementById('formCategoria').addEventListener('submit', function() {
+            document.getElementById('loadingOverlay').style.display = 'flex'; // Exibe o loading
+        });
+
+        // Oculta o loading após o envio do formulário
+        window.addEventListener('load', function() {
+            document.getElementById('loadingOverlay').style.display = 'none'; // Oculta o loading
+        });
+    </script>
 </body>
 </html>
