@@ -132,30 +132,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
             // Totalização por categoria
             $stmt = $pdo->prepare("
-                SELECT c.nome AS categoria, 
-                       SUM(ip.quantidade * ip.valor_unitario) AS total_bruto, 
-                       (SELECT SUM(p2.desconto) 
-                        FROM pedidos p2 
-                        JOIN itens_pedido ip2 ON p2.id = ip2.pedido_id
-                        JOIN produtos pr2 ON ip2.produto_id = pr2.id
-                        JOIN categorias c2 ON pr2.categoria_id = c2.id
-                        WHERE c2.nome = c.nome 
-                          AND p2.dataPedido BETWEEN ? AND ?) AS total_desconto, 
-                       SUM(ip.quantidade * ip.valor_unitario) - (SELECT SUM(p2.desconto) 
-                                                                 FROM pedidos p2 
-                                                                 JOIN itens_pedido ip2 ON p2.id = ip2.pedido_id
-                                                                 JOIN produtos pr2 ON ip2.produto_id = pr2.id
-                                                                 JOIN categorias c2 ON pr2.categoria_id = c2.id
-                                                                 WHERE c2.nome = c.nome 
-                                                                   AND p2.dataPedido BETWEEN ? AND ?) AS total_liquido
-                FROM pedidos p
-                JOIN itens_pedido ip ON p.id = ip.pedido_id
-                JOIN produtos pr ON ip.produto_id = pr.id
-                JOIN categorias c ON pr.categoria_id = c.id
-                WHERE p.dataPedido BETWEEN ? AND ?
-                GROUP BY c.nome
+                WITH TotalDesconto AS (
+                    SELECT SUM(p.desconto) AS total_desconto
+                    FROM pedidos p
+                    WHERE p.dataPedido BETWEEN ? AND ?
+                ),
+                TotalBruto AS (
+                    SELECT 
+                        c.nome AS categoria, 
+                        SUM(ip.quantidade * ip.valor_unitario) AS total_bruto
+                    FROM pedidos p
+                    JOIN itens_pedido ip ON p.id = ip.pedido_id
+                    JOIN produtos pr ON ip.produto_id = pr.id
+                    JOIN categorias c ON pr.categoria_id = c.id
+                    WHERE p.dataPedido BETWEEN ? AND ?
+                    GROUP BY c.nome
+                )
+                SELECT 
+                    tb.categoria, 
+                    tb.total_bruto, 
+                    CASE 
+                        WHEN ROW_NUMBER() OVER (ORDER BY tb.categoria) = 1 THEN (SELECT total_desconto FROM TotalDesconto)
+                        ELSE NULL 
+                    END AS total_desconto,
+                    CASE 
+                        WHEN ROW_NUMBER() OVER (ORDER BY tb.categoria) = 1 THEN (SELECT SUM(total_bruto) FROM TotalBruto) - (SELECT total_desconto FROM TotalDesconto)
+                        ELSE NULL 
+                    END AS total_liquido
+                FROM TotalBruto tb
             ");
-            $stmt->execute([$data_inicio_timestamp, $data_fim_timestamp, $data_inicio_timestamp, $data_fim_timestamp, $data_inicio_timestamp, $data_fim_timestamp]);
+            $stmt->execute([$data_inicio_timestamp, $data_fim_timestamp, $data_inicio_timestamp, $data_fim_timestamp]);
             $total_por_categoria = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             // Função para formatar valores em reais
@@ -177,7 +183,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                         echo "<tr>";
                         foreach ($linha as $chave => $valor) {
                             if (in_array($chave, ['total_bruto', 'desconto', 'total_liquido', 'total_desconto'])) {
-                                echo "<td>" . formatarReais($valor) . "</td>";
+                                echo "<td>" . ($valor !== null ? formatarReais($valor) : '') . "</td>";
                             } else {
                                 echo "<td>$valor</td>";
                             }
