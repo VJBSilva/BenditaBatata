@@ -105,6 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 FROM pedidos p
                 JOIN itens_pedido ip ON p.id = ip.pedido_id
                 WHERE p.dataPedido BETWEEN ? AND ?
+                  AND p.status != 'excluido' -- Ignorar pedidos excluídos
                 GROUP BY p.id, p.dataPedido, p.metodo_pagamento, p.desconto
             ");
             $stmt->execute([$data_inicio_timestamp, $data_fim_timestamp]);
@@ -117,14 +118,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                        (SELECT SUM(p2.desconto) 
                         FROM pedidos p2 
                         WHERE p2.metodo_pagamento = p.metodo_pagamento 
-                          AND p2.dataPedido BETWEEN ? AND ?) AS total_desconto, 
+                          AND p2.dataPedido BETWEEN ? AND ?
+                          AND p2.status != 'excluido') AS total_desconto, 
                        SUM(ip.quantidade * ip.valor_unitario) - (SELECT SUM(p2.desconto) 
                                                                  FROM pedidos p2 
                                                                  WHERE p2.metodo_pagamento = p.metodo_pagamento 
-                                                                   AND p2.dataPedido BETWEEN ? AND ?) AS total_liquido
+                                                                   AND p2.dataPedido BETWEEN ? AND ?
+                                                                   AND p2.status != 'excluido') AS total_liquido
                 FROM pedidos p
                 JOIN itens_pedido ip ON p.id = ip.pedido_id
                 WHERE p.dataPedido BETWEEN ? AND ?
+                  AND p.status != 'excluido' -- Ignorar pedidos excluídos
                 GROUP BY p.metodo_pagamento
             ");
             $stmt->execute([$data_inicio_timestamp, $data_fim_timestamp, $data_inicio_timestamp, $data_fim_timestamp, $data_inicio_timestamp, $data_fim_timestamp]);
@@ -136,6 +140,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                     SELECT SUM(p.desconto) AS total_desconto
                     FROM pedidos p
                     WHERE p.dataPedido BETWEEN ? AND ?
+                      AND p.status != 'excluido' -- Ignorar pedidos excluídos
                 ),
                 TotalBruto AS (
                     SELECT 
@@ -146,6 +151,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                     JOIN produtos pr ON ip.produto_id = pr.id
                     JOIN categorias c ON pr.categoria_id = c.id
                     WHERE p.dataPedido BETWEEN ? AND ?
+                      AND p.status != 'excluido' -- Ignorar pedidos excluídos
                     GROUP BY c.nome
                 )
                 SELECT 
