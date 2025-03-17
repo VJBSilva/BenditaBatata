@@ -233,14 +233,14 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                 gap: 10px;
             }
             .form-container {
-                flex-direction: column;
+                flex-direction: row; /* Mantém os campos lado a lado */
                 gap: 10px;
             }
             .form-group textarea {
                 width: 100%;
             }
             .form-group input[type="text"] {
-                width: 100%; /* Campo de senha ocupa toda a largura em mobile */
+                width: 150px; /* Mantém a largura fixa para o campo de senha */
             }
             .metodo-pagamento {
                 width: 100%;
