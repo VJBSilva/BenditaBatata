@@ -164,6 +164,7 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         .form-container {
             display: flex;
             gap: 20px;
+            padding: 0 20px;
         }
         .form-group {
             flex: 1;
