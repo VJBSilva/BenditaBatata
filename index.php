@@ -175,15 +175,15 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             font-size: 14px;
         }
         .form-group textarea {
-            width: 100%;
-            height: 25px;
+            width: 100%; /* Ocupa toda a largura disponível */
+            height: 25px; /* Altura fixa */
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 3px;
             font-size: 14px;
         }
         .form-group input[type="text"] {
-            width: 150px; /* Tamanho fixo para o campo de senha */
+            width: 150px; /* Largura fixa para o campo de senha */
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 3px;
