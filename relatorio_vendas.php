@@ -130,16 +130,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             $stmt->execute([$data_inicio_timestamp, $data_fim_timestamp, $data_inicio_timestamp, $data_fim_timestamp, $data_inicio_timestamp, $data_fim_timestamp]);
             $total_por_pagamento = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            // Totalização por categoria
+            // Totalização por categoria (sem desconto e total líquido)
             $stmt = $pdo->prepare("
                 SELECT c.nome AS categoria, 
-                       SUM(ip.quantidade * ip.valor_unitario) AS total_bruto, 
-                       (SELECT SUM(p.desconto) 
-                        FROM pedidos p 
-                        WHERE p.dataPedido BETWEEN ? AND ?) AS total_desconto, 
-                       SUM(ip.quantidade * ip.valor_unitario) - (SELECT SUM(p.desconto) 
-                                                                 FROM pedidos p 
-                                                                 WHERE p.dataPedido BETWEEN ? AND ?) AS total_liquido
+                       SUM(ip.quantidade * ip.valor_unitario) AS total_bruto
                 FROM pedidos p
                 JOIN itens_pedido ip ON p.id = ip.pedido_id
                 JOIN produtos pr ON ip.produto_id = pr.id
@@ -147,7 +141,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 WHERE p.dataPedido BETWEEN ? AND ?
                 GROUP BY c.nome
             ");
-            $stmt->execute([$data_inicio_timestamp, $data_fim_timestamp, $data_inicio_timestamp, $data_fim_timestamp, $data_inicio_timestamp, $data_fim_timestamp]);
+            $stmt->execute([$data_inicio_timestamp, $data_fim_timestamp]);
             $total_por_categoria = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             // Função para formatar valores em reais
@@ -156,7 +150,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             }
 
             // Função para exibir tabelas
-            function exibirTabela($dados, $colunas, $titulo, $mostrarDescontoLiquido = true) {
+            function exibirTabela($dados, $colunas, $titulo) {
                 if (count($dados) > 0) {
                     echo "<h2>$titulo</h2>";
                     echo "<table>
@@ -165,20 +159,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                         echo "<th>$coluna</th>";
                     }
                     echo "</tr>";
-                    foreach ($dados as $indice => $linha) {
+                    foreach ($dados as $linha) {
                         echo "<tr>";
                         foreach ($linha as $chave => $valor) {
                             if (in_array($chave, ['total_bruto', 'desconto', 'total_liquido'])) {
-                                if ($chave === 'desconto' || $chave === 'total_liquido') {
-                                    // Exibir desconto e total líquido apenas na primeira linha
-                                    if ($indice === 0) {
-                                        echo "<td>" . formatarReais($valor) . "</td>";
-                                    } else {
-                                        echo "<td></td>"; // Célula vazia para as outras linhas
-                                    }
-                                } else {
-                                    echo "<td>" . formatarReais($valor) . "</td>";
-                                }
+                                echo "<td>" . formatarReais($valor) . "</td>";
                             } else {
                                 echo "<td>$valor</td>";
                             }
@@ -194,7 +179,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             // Exibir os resultados
             exibirTabela($vendas, ['ID Pedido', 'Data', 'Método de Pagamento', 'Total Bruto', 'Desconto', 'Total Líquido'], 'Vendas no Período');
             exibirTabela($total_por_pagamento, ['Método de Pagamento', 'Total Bruto', 'Desconto', 'Total Líquido'], 'Totalização por Tipo de Pagamento');
-            exibirTabela($total_por_categoria, ['Categoria', 'Total Bruto', 'Desconto', 'Total Líquido'], 'Totalização por Categoria');
+            exibirTabela($total_por_categoria, ['Categoria', 'Total Bruto'], 'Totalização por Categoria');
+
+            // Calcular o total líquido geral
+            $total_liquido_geral = 0;
+            foreach ($vendas as $venda) {
+                $total_liquido_geral += $venda['total_liquido'];
+            }
+
+            // Exibir o total líquido geral
+            echo "<h3>Total Líquido Geral: " . formatarReais($total_liquido_geral) . "</h3>";
         } catch (PDOException $e) {
             echo "<p class='mensagem-erro'>Erro ao buscar dados: " . $e->getMessage() . "</p>";
         }
