@@ -7,7 +7,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $senha = $_POST['senha'];
 
     // Busca o usuário no banco de dados
-    $stmt = $pdo->prepare("SELECT id, senha FROM usuarios WHERE usuario = ?");
+    $stmt = $pdo->prepare("SELECT id, senha, tipo_usuario FROM usuarios WHERE usuario = ?");
     $stmt->execute([$usuario]);
     $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -15,6 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($usuario && password_verify($senha, $usuario['senha'])) {
         // Login bem-sucedido: define o cookie
         setcookie('usuario_id', $usuario['id'], time() + (86400 * 30), "/"); // Cookie válido por 30 dias
+        setcookie('tipo_usuario', $usuario['tipo_usuario'], time() + (86400 * 30), "/"); // Armazena o tipo de usuário
         header("Location: menu.php");
         exit();
     } else {
