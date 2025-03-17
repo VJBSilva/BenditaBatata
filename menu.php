@@ -1,6 +1,9 @@
 <?php
 require 'conexao.php';
 verificarLogin(); // Verifica se o usuário está logado
+
+// Verifica o tipo de usuário
+$tipo_usuario = $_COOKIE['tipo_usuario'] ?? 'user';
 ?>
 
 <!DOCTYPE html>
@@ -60,12 +63,16 @@ verificarLogin(); // Verifica se o usuário está logado
         <h2>Menu Principal</h2>
         <button onclick="window.location.href='cadastro_pedido.php'">Cadastro de Pedido</button>
         <button onclick="window.location.href='visualizar_pedidos.php'">Visualizar Pedidos</button>
-        <button onclick="toggleSubMenu()">Cadastros</button>
-        <div class="sub-menu" id="subMenu">
-            <button onclick="window.location.href='cadastro_categoria.php'">Cadastro de Categoria</button>
-            <button onclick="window.location.href='cadastro_produto.php'">Cadastro de Produto</button>
-            <button onclick="window.location.href='cadastro_adicionais.php'">Cadastro de Opcional</button>
-        </div>
+
+        <?php if ($tipo_usuario === 'admin'): ?>
+            <button onclick="toggleSubMenu()">Cadastros</button>
+            <div class="sub-menu" id="subMenu">
+                <button onclick="window.location.href='cadastro_categoria.php'">Cadastro de Categoria</button>
+                <button onclick="window.location.href='cadastro_produto.php'">Cadastro de Produto</button>
+                <button onclick="window.location.href='cadastro_opcional.php'">Cadastro de Opcional</button>
+            </div>
+        <?php endif; ?>
+
         <button onclick="window.location.href='logout.php'">Sair</button>
     </div>
 
