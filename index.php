@@ -226,7 +226,7 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         .finalizar-pedido:hover {
             background-color: #218838;
         }
-        @media (max-width: 768px) {
+        @media (max-width: 700px) {
             .footer {
                 flex-direction: column;
                 align-items: flex-start;
@@ -234,7 +234,7 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             }
             .form-container {
                 flex-direction: row; /* Mantém os campos lado a lado */
-                gap: 10px;
+                gap: 30px;
             }
             .form-group textarea {
                 width: 100%; /* Largura reduzida pela metade */
