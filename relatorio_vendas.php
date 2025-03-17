@@ -1,3 +1,8 @@
+<?php
+require 'conexao.php';
+
+verificarLogin(); // Verifica se o usuário está logado
+}
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
