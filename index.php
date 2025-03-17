@@ -230,7 +230,7 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             .footer {
                 flex-direction: column;
                 align-items: flex-start;
-                gap: 10px;
+                gap: 30px;
             }
             .form-container {
                 flex-direction: row; /* Mantém os campos lado a lado */
