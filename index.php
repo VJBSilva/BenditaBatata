@@ -168,6 +168,7 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         }
         .form-group {
             flex: 1;
+            gap: 30px;
         }
         .form-group label {
             display: block;
@@ -181,8 +182,7 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             border: 1px solid #ddd;
             border-radius: 3px;
             font-size: 14px;
-            gap: 30px;
-        }
+            }
         .form-group input[type="text"] {
             width: 40%; /* Largura reduzida pela metade */
             padding: 10px;
