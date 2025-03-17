@@ -175,7 +175,7 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             font-size: 14px;
         }
         .form-group textarea {
-            width: 50%; /* Largura reduzida pela metade */
+            width: 70%; /* Largura reduzida pela metade */
             height: 25px; /* Altura fixa */
             padding: 10px;
             border: 1px solid #ddd;
@@ -183,7 +183,7 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             font-size: 14px;
         }
         .form-group input[type="text"] {
-            width: 30%; /* Largura reduzida pela metade */
+            width: 40%; /* Largura reduzida pela metade */
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 3px;
