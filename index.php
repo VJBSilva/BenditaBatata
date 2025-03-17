@@ -181,7 +181,7 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             border: 1px solid #ddd;
             border-radius: 3px;
             font-size: 14px;
-            }
+        }
         .form-group input[type="text"] {
             width: 40%; /* Largura reduzida pela metade */
             padding: 10px;
@@ -227,28 +227,28 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             background-color: #218838;
         }
         @media (max-width: 768px) {
-    .footer {
-        flex-direction: column; /* Coloca os elementos em coluna */
-        align-items: flex-start; /* Alinha os elementos à esquerda */
-        gap: 0px; /* Espaço entre os elementos */
-    }
+            .footer {
+                flex-direction: column; /* Coloca os elementos em coluna */
+                align-items: flex-start; /* Alinha os elementos à esquerda */
+                gap: 0px; /* Espaço entre os elementos */
+            }
 
-    .metodo-pagamento {
-        width: 100%; /* Ocupa toda a largura */
-    }
+            .metodo-pagamento {
+                width: 100%; /* Ocupa toda a largura */
+            }
 
-    .desconto-total {
-        width: 100%; /* Ocupa toda a largura */
-        flex-direction: column; /* Coloca desconto e total em coluna */
-        align-items: flex-start;
-        gap: 10px; /* Espaço entre desconto e total */
-    }
+            .desconto-total {
+                width: 100%; /* Ocupa toda a largura */
+                flex-direction: column; /* Coloca desconto e total em coluna */
+                align-items: flex-start;
+                gap: 10px; /* Espaço entre desconto e total */
+            }
 
-    .finalizar-pedido {
-        width: 100%; /* Ocupa toda a largura */
-        margin-top: 10px; /* Espaço acima do botão */
-    }
-}
+            .finalizar-pedido {
+                width: 100%; /* Ocupa toda a largura */
+                margin-top: 10px; /* Espaço acima do botão */
+            }
+        }
     </style>
 </head>
 <body>
@@ -326,8 +326,152 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
     </div>
 
     <script>
-        // Funções JavaScript (mantidas iguais ao código anterior)
-        // ...
+        // Função para aumentar a quantidade
+        function aumentarQuantidade(id) {
+            const input = document.getElementById(id);
+            let quantidade = parseInt(input.value) || 0;
+            quantidade++;
+            input.value = quantidade;
+            calcularTotal();
+            const produtoId = id.split('_')[1];
+            atualizarCheckboxes(produtoId);
+        }
+
+        // Função para diminuir a quantidade
+        function diminuirQuantidade(id) {
+            const input = document.getElementById(id);
+            let quantidade = parseInt(input.value) || 0;
+            if (quantidade > 0) {
+                quantidade--;
+                input.value = quantidade;
+                calcularTotal();
+                const produtoId = id.split('_')[1];
+                atualizarCheckboxes(produtoId);
+            }
+        }
+
+        // Função para validar a quantidade digitada (aceitar apenas números)
+        function validarQuantidade(input) {
+            input.value = input.value.replace(/[^0-9]/g, '');
+            if (input.value === '') {
+                input.value = 0;
+            }
+            calcularTotal();
+            const produtoId = input.id.split('_')[1];
+            atualizarCheckboxes(produtoId);
+        }
+
+        // Função para calcular o total a pagar
+        function calcularTotal() {
+            const produtos = document.querySelectorAll('.produto');
+            let total = 0;
+
+            produtos.forEach(produto => {
+                const quantidadeInput = produto.querySelector('input');
+                const quantidade = parseInt(quantidadeInput.value) || 0;
+                const preco = parseFloat(produto.getAttribute('data-preco')) || 0;
+                total += quantidade * preco;
+            });
+
+            // Aplicar desconto
+            const desconto = parseFloat(document.getElementById('desconto').value) || 0;
+            total -= desconto;
+
+            // Garantir que o total não seja negativo
+            total = Math.max(total, 0);
+
+            document.getElementById('total').textContent = total.toFixed(2);
+        }
+
+        // Função para habilitar/desabilitar checkboxes com base na quantidade
+        function atualizarCheckboxes(produtoId) {
+            const quantidadeInput = document.getElementById(`produto_${produtoId}`);
+            const quantidade = parseInt(quantidadeInput.value) || 0;
+            const checkboxes = document.querySelectorAll(`.produto[data-id="${produtoId}"] .adicionais input[type="checkbox"]`);
+
+            checkboxes.forEach(checkbox => {
+                checkbox.disabled = quantidade === 0;
+                if (quantidade === 0) {
+                    checkbox.checked = false; // Desmarca o checkbox se a quantidade for zero
+                }
+            });
+        }
+
+        // Função para finalizar o pedido
+        function finalizarPedido() {
+            const produtos = document.querySelectorAll('.produto');
+            const observacao = document.getElementById('observacao').value;
+            const senha = document.getElementById('senha').value;
+            const metodoPagamento = document.querySelector('input[name="metodo_pagamento"]:checked').value;
+            const desconto = parseFloat(document.getElementById('desconto').value) || 0;
+
+            let pedido = {
+                observacao: observacao,
+                senha: senha,
+                metodo_pagamento: metodoPagamento,
+                desconto: desconto,
+                itens: []
+            };
+
+            produtos.forEach(produto => {
+                const produtoId = produto.getAttribute('data-id');
+                const quantidadeInput = produto.querySelector('input');
+                const quantidade = parseInt(quantidadeInput.value) || 0;
+                if (quantidade > 0) {
+                    const adicionais = produto.querySelectorAll('.adicionais input[type="checkbox"]:checked');
+                    const adicionaisSelecionados = [];
+                    adicionais.forEach(adicional => {
+                        adicionaisSelecionados.push(adicional.value);
+                    });
+
+                    pedido.itens.push({
+                        produto_id: produtoId,
+                        quantidade: quantidade,
+                        preco_unitario: parseFloat(produto.getAttribute('data-preco')),
+                        adicionais: adicionaisSelecionados
+                    });
+                }
+            });
+
+            if (pedido.itens.length > 0) {
+                fetch('salvar_pedido.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(pedido)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Erro na requisição: ' + response.statusText);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.status === 'success') {
+                        alert('Pedido finalizado com sucesso!');
+                        console.log('Pedido:', pedido);
+                        // Limpar o carrinho após finalizar o pedido
+                        produtos.forEach(produto => {
+                            const quantidadeInput = produto.querySelector('input');
+                            quantidadeInput.value = 0;
+                        });
+                        document.getElementById('observacao').value = '';
+                        document.getElementById('senha').value = '';
+                        document.getElementById('desconto').value = '0.00';
+                        calcularTotal(); // Atualizar o total para R$ 0.00
+                    } else {
+                        alert('Erro ao salvar o pedido: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro ao salvar pedido:', error);
+                    alert('Erro ao salvar o pedido. Verifique o console para mais detalhes.');
+                });
+            } else {
+                alert('Adicione itens ao pedido antes de finalizar.');
+            }
+        }
     </script>
 </body>
 </html>
