@@ -163,7 +163,7 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         }
         .form-container {
             display: flex;
-            gap: 20px;
+            gap: 30px; /* Espaçamento maior entre os campos */
             padding: 0 20px;
         }
         .form-group {
@@ -175,7 +175,7 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             font-size: 14px;
         }
         .form-group textarea {
-            width: 100%; /* Ocupa toda a largura disponível */
+            width: 80%; /* Largura reduzida para 80% */
             height: 25px; /* Altura fixa */
             padding: 10px;
             border: 1px solid #ddd;
@@ -183,7 +183,7 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             font-size: 14px;
         }
         .form-group input[type="text"] {
-            width: 150px; /* Largura fixa para o campo de senha */
+            width: 30%; /* Largura reduzida para 30% */
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 3px;
@@ -233,14 +233,14 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                 gap: 10px;
             }
             .form-container {
-                flex-direction: row; /* Mantém os campos lado a lado */
+                flex-direction: column; /* Campos em coluna em telas menores */
                 gap: 10px;
             }
             .form-group textarea {
-                width: 100%;
+                width: 100%; /* Ocupa toda a largura */
             }
             .form-group input[type="text"] {
-                width: 150px; /* Mantém a largura fixa para o campo de senha */
+                width: 100%; /* Ocupa toda a largura */
             }
             .metodo-pagamento {
                 width: 100%;
