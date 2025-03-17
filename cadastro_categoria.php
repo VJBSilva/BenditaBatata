@@ -1,6 +1,12 @@
 <?php
 require 'conexao.php';
-verificarLogin(); // Verifica se o usuário está logado
+//verificarLogin(); // Verifica se o usuário está logado
+
+// Verifica se o usuário está logado e é um administrador
+if (!isset($_COOKIE['usuario_id']) || $_COOKIE['tipo_usuario'] !== 'admin') {
+    header("Location: index.php");
+    exit();
+}
 
 // Lógica para salvar/editar categoria
 if (isset($_POST['salvar'])) {
