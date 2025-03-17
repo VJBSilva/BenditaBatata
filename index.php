@@ -1,40 +1,3 @@
-<?php
-require 'conexao.php';
-
-// Carregar produtos com categorias
-$stmt = $pdo->query("
-    SELECT produtos.*, categorias.nome AS categoria_nome
-    FROM produtos
-    JOIN categorias ON produtos.categoria_id = categorias.id
-");
-$produtos = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-// Agrupar produtos por categoria
-$produtosPorCategoria = [];
-foreach ($produtos as $produto) {
-    $categoria = $produto['categoria_nome'];
-    if (!isset($produtosPorCategoria[$categoria])) {
-        $produtosPorCategoria[$categoria] = [];
-    }
-    $produtosPorCategoria[$categoria][] = $produto;
-}
-
-// Carregar adicionais por categoria
-$adicionaisPorCategoria = [];
-$stmt = $pdo->query("
-    SELECT categoria_adicionais.categoria_id, adicionais.*
-    FROM categoria_adicionais
-    JOIN adicionais ON categoria_adicionais.adicional_id = adicionais.id
-");
-while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-    $categoria_id = $row['categoria_id'];
-    if (!isset($adicionaisPorCategoria[$categoria_id])) {
-        $adicionaisPorCategoria[$categoria_id] = [];
-    }
-    $adicionaisPorCategoria[$categoria_id][] = $row;
-}
-?>
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -42,6 +5,7 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pedidos - Bendita Batata</title>
     <style>
+        /* Estilos gerais */
         body {
             font-family: Arial, sans-serif;
             background-color: #f8f9fa;
