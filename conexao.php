@@ -10,4 +10,12 @@ try {
 } catch (PDOException $e) {
     die("Erro ao conectar ao banco de dados: " . $e->getMessage());
 }
+
+// Função para verificar se o usuário está logado
+function verificarLogin() {
+    if (!isset($_COOKIE['usuario_id'])) {
+        header("Location: index.php");
+        exit();
+    }
+}
 ?>
