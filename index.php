@@ -163,12 +163,11 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         }
         .form-container {
             display: flex;
-            gap: 10px; /* Espaçamento menor entre os campos */
+            gap: 30px; /* Espaçamento menor entre os campos */
             padding: 0 20px;
         }
         .form-group {
             flex: 1;
-            gap: 30px;
         }
         .form-group label {
             display: block;
