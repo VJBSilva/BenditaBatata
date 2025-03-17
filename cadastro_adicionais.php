@@ -1,6 +1,12 @@
 <?php
 require 'conexao.php';
 
+// Verifica se o usuário está logado e é um administrador
+if (!isset($_COOKIE['usuario_id']) || $_COOKIE['tipo_usuario'] !== 'admin') {
+    header("Location: index.php");
+    exit();
+}
+
 // Lógica para salvar/editar vínculo de adicionais à categoria
 if (isset($_POST['salvar'])) {
     $categoria_id = $_POST['categoria_id'];
