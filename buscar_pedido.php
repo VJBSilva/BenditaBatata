@@ -1,5 +1,6 @@
 <?php
 require 'conexao.php';
+verificarLogin(); // Verifica se o usuário está logado
 
 $pedidoId = $_GET['id'];
 
