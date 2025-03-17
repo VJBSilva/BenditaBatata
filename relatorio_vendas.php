@@ -130,18 +130,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             $stmt->execute([$data_inicio_timestamp, $data_fim_timestamp, $data_inicio_timestamp, $data_fim_timestamp, $data_inicio_timestamp, $data_fim_timestamp]);
             $total_por_pagamento = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            // Totalização por categoria (sem desconto e total líquido)
+            // Totalização por categoria
             $stmt = $pdo->prepare("
-                SELECT c.nome AS categoria, 
-                       SUM(ip.quantidade * ip.valor_unitario) AS total_bruto
-                FROM pedidos p
-                JOIN itens_pedido ip ON p.id = ip.pedido_id
-                JOIN produtos pr ON ip.produto_id = pr.id
-                JOIN categorias c ON pr.categoria_id = c.id
-                WHERE p.dataPedido BETWEEN ? AND ?
-                GROUP BY c.nome
+                WITH TotalDesconto AS (
+                    SELECT SUM(p.desconto) AS total_desconto
+                    FROM pedidos p
+                    WHERE p.dataPedido BETWEEN ? AND ?
+                ),
+                TotalBruto AS (
+                    SELECT 
+                        c.nome AS categoria, 
+                        SUM(ip.quantidade * ip.valor_unitario) AS total_bruto
+                    FROM pedidos p
+                    JOIN itens_pedido ip ON p.id = ip.pedido_id
+                    JOIN produtos pr ON ip.produto_id = pr.id
+                    JOIN categorias c ON pr.categoria_id = c.id
+                    WHERE p.dataPedido BETWEEN ? AND ?
+                    GROUP BY c.nome
+                )
+                SELECT 
+                    tb.categoria, 
+                    tb.total_bruto, 
+                    CASE 
+                        WHEN ROW_NUMBER() OVER (ORDER BY tb.categoria) = 1 THEN (SELECT total_desconto FROM TotalDesconto)
+                        ELSE NULL 
+                    END AS total_desconto,
+                    CASE 
+                        WHEN ROW_NUMBER() OVER (ORDER BY tb.categoria) = 1 THEN (SELECT SUM(total_bruto) FROM TotalBruto) - (SELECT total_desconto FROM TotalDesconto)
+                        ELSE NULL 
+                    END AS total_liquido
+                FROM TotalBruto tb
             ");
-            $stmt->execute([$data_inicio_timestamp, $data_fim_timestamp]);
+            $stmt->execute([$data_inicio_timestamp, $data_fim_timestamp, $data_inicio_timestamp, $data_fim_timestamp]);
             $total_por_categoria = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             // Função para formatar valores em reais
@@ -162,8 +182,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                     foreach ($dados as $linha) {
                         echo "<tr>";
                         foreach ($linha as $chave => $valor) {
-                            if (in_array($chave, ['total_bruto', 'desconto', 'total_liquido'])) {
-                                echo "<td>" . formatarReais($valor) . "</td>";
+                            if (in_array($chave, ['total_bruto', 'desconto', 'total_liquido', 'total_desconto'])) {
+                                echo "<td>" . ($valor !== null ? formatarReais($valor) : '') . "</td>";
                             } else {
                                 echo "<td>$valor</td>";
                             }
@@ -179,7 +199,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             // Exibir os resultados
             exibirTabela($vendas, ['ID Pedido', 'Data', 'Método de Pagamento', 'Total Bruto', 'Desconto', 'Total Líquido'], 'Vendas no Período');
             exibirTabela($total_por_pagamento, ['Método de Pagamento', 'Total Bruto', 'Desconto', 'Total Líquido'], 'Totalização por Tipo de Pagamento');
-            exibirTabela($total_por_categoria, ['Categoria', 'Total Bruto'], 'Totalização por Categoria');
+            exibirTabela($total_por_categoria, ['Categoria', 'Total Bruto', 'Desconto', 'Total Líquido'], 'Totalização por Categoria');
 
             // Calcular o total líquido geral
             $total_liquido_geral = 0;
