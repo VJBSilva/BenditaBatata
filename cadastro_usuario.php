@@ -3,6 +3,10 @@ session_start();
 require 'conexao.php'; // Arquivo de conexão com o banco de dados
 
 // Verifica se o usuário está logado e é um administrador
+if (!isset($_COOKIE['usuario_id']) || $_COOKIE['tipo_usuario'] !== 'admin') {
+    header("Location: index.php");
+    exit();
+}
 
 
 $mensagem = ''; // Variável para exibir mensagens de sucesso ou erro
