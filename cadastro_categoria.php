@@ -1,6 +1,5 @@
 <?php
 require 'conexao.php';
-//verificarLogin(); // Verifica se o usuário está logado
 
 // Verifica se o usuário está logado e é um administrador
 if (!isset($_COOKIE['usuario_id']) || $_COOKIE['tipo_usuario'] !== 'admin') {
