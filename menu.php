@@ -64,7 +64,7 @@ verificarLogin(); // Verifica se o usuário está logado
         <div class="sub-menu" id="subMenu">
             <button onclick="window.location.href='cadastro_categoria.php'">Cadastro de Categoria</button>
             <button onclick="window.location.href='cadastro_produto.php'">Cadastro de Produto</button>
-            <button onclick="window.location.href='cadastro_opcional.php'">Cadastro de Opcional</button>
+            <button onclick="window.location.href='cadastro_adicionais.php'">Cadastro de Opcional</button>
         </div>
         <button onclick="window.location.href='logout.php'">Sair</button>
     </div>
