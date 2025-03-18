@@ -349,7 +349,7 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         </div>
     </div>
 
-    <script>
+  <script>
     // Função para aumentar a quantidade
     function aumentarQuantidade(id) {
         const input = document.getElementById(id);
@@ -398,8 +398,11 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             total += quantidade * preco;
         });
 
+        // Obtém o valor do desconto e substitui vírgula por ponto
+        const descontoInput = document.getElementById('desconto').value;
+        const desconto = parseFloat(descontoInput.replace(',', '.')) || 0;
+
         // Subtrai o desconto
-        const desconto = parseFloat(document.getElementById('desconto').value) || 0;
         total -= desconto;
 
         // Garante que o total não seja negativo
@@ -432,7 +435,10 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         const observacao = document.getElementById('observacao').value;
         const senha = document.getElementById('senha').value;
         const metodoPagamento = document.querySelector('input[name="metodo_pagamento"]:checked').value;
-        const desconto = validarDesconto(document.getElementById('desconto').value); // Valida o desconto
+
+        // Obtém o valor do desconto e substitui vírgula por ponto
+        const descontoInput = document.getElementById('desconto').value;
+        const desconto = parseFloat(descontoInput.replace(',', '.')) || 0;
 
         let pedido = {
             observacao: observacao,
