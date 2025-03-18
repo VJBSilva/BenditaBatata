@@ -10,7 +10,7 @@ if (!isset($_COOKIE['usuario_id']) || $_COOKIE['tipo_usuario'] !== 'admin') {
 // Lógica para salvar/editar despesa
 if (isset($_POST['salvar'])) {
     $id = $_POST['id'];
-    $tipo_despesa_id = $_POST['tipo_despesa_id']; // ID do tipo de despesa
+    $tipo_despesa_id = $_POST['tipo_despesa_id'];
     $valor = str_replace('.', '', $_POST['valor']); // Remove os pontos (separadores de milhares)
     $valor = str_replace(',', '.', $valor); // Substitui a vírgula por ponto (separador decimal)
     $data = $_POST['data'];
