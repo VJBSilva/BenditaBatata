@@ -1,3 +1,12 @@
+   <?php
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    require 'conexao.php'; // Arquivo de conexão com o banco de dados
+
+    // Verifica se o usuário está logado e é um administrador
+if (!isset($_COOKIE['usuario_id']) || $_COOKIE['tipo_usuario'] !== 'admin') {
+    header("Location: index.php");
+    exit();
+}
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
