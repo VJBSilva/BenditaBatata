@@ -81,7 +81,11 @@
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     require 'conexao.php'; // Arquivo de conexão com o banco de dados
 
-    verificarLogin(); // Verifica se o usuário está logado
+    // Verifica se o usuário está logado e é um administrador
+if (!isset($_COOKIE['usuario_id']) || $_COOKIE['tipo_usuario'] !== 'admin') {
+    header("Location: index.php");
+    exit();
+}
     
     // Definir datas e horas padrão (hoje)
     $data_inicio = isset($_GET['data_inicio']) ? $_GET['data_inicio'] : date('Y-m-d');
