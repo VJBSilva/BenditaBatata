@@ -71,6 +71,7 @@ $tipo_usuario = $_COOKIE['tipo_usuario'] ?? 'user';
                 <button onclick="window.location.href='cadastro_produto.php'">Cadastro de Produto</button>
                 <button onclick="window.location.href='cadastro_adicionais.php'">Cadastro de Opcional</button>
                  <button onclick="window.location.href='cadastro_usuario.php'">Cadastro de Usuário</button>
+                <button onclick="window.location.href='relatorio_vendas.php'">Relatório de Vendas</button>
             </div>
         <?php endif; ?>
 
