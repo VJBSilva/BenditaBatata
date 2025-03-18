@@ -1,4 +1,7 @@
 <?php
+// Definir o fuso horário para São Paulo
+date_default_timezone_set('America/Sao_Paulo');
+
 require 'conexao.php';
 
 // Receber os dados do pedido
