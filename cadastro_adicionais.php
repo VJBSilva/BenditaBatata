@@ -7,38 +7,54 @@ if (!isset($_COOKIE['usuario_id']) || $_COOKIE['tipo_usuario'] !== 'admin') {
     exit();
 }
 
-// Lógica para salvar/editar vínculo de adicionais à categoria
+// Lógica para salvar/editar adicional
 if (isset($_POST['salvar'])) {
-    $categoria_id = $_POST['categoria_id'];
-    $adicionais = $_POST['adicionais'] ?? [];
+    $id = $_POST['id'];
+    $nome = $_POST['nome'];
+    $status = $_POST['status'];
 
-    // Remover vínculos existentes
-    $stmt = $pdo->prepare("DELETE FROM categoria_adicionais WHERE categoria_id = ?");
-    $stmt->execute([$categoria_id]);
+    // Verifica se o adicional já existe (apenas para cadastro, não para edição)
+    if (!$id) {
+        $stmt = $pdo->prepare("SELECT id FROM adicionais WHERE nome = ?");
+        $stmt->execute([$nome]);
+        $adicionalExistente = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    // Adicionar novos vínculos
-    foreach ($adicionais as $adicional_id) {
-        $stmt = $pdo->prepare("INSERT INTO categoria_adicionais (categoria_id, adicional_id) VALUES (?, ?)");
-        $stmt->execute([$categoria_id, $adicional_id]);
+        if ($adicionalExistente) {
+            echo "<script>alert('Adicional já cadastrado!');</script>";
+            exit();
+        }
     }
+
+    if ($id) {
+        // Editar adicional existente
+        $stmt = $pdo->prepare("UPDATE adicionais SET nome = ?, status = ? WHERE id = ?");
+        $stmt->execute([$nome, $status, $id]);
+    } else {
+        // Cadastrar novo adicional
+        $stmt = $pdo->prepare("INSERT INTO adicionais (nome, status) VALUES (?, ?)");
+        $stmt->execute([$nome, $status]);
+        $id = $pdo->lastInsertId();
+    }
+
+    // Redirecionar para evitar reenvio do formulário
+    header("Location: cadastro_adicionais.php");
+    exit();
 }
 
-// Carregar categorias
-$stmt = $pdo->query("SELECT * FROM categorias");
-$categorias = $stmt->fetchAll(PDO::FETCH_ASSOC);
+// Lógica para excluir adicional
+if (isset($_GET['excluir'])) {
+    $id = $_GET['excluir'];
+    $stmt = $pdo->prepare("DELETE FROM adicionais WHERE id = ?");
+    $stmt->execute([$id]);
+
+    // Redirecionar para evitar reenvio do formulário
+    header("Location: cadastro_adicionais.php");
+    exit();
+}
 
 // Carregar adicionais
 $stmt = $pdo->query("SELECT * FROM adicionais");
 $adicionais = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-// Carregar adicionais vinculados à categoria selecionada
-$adicionaisVinculados = [];
-if (isset($_GET['categoria_id'])) {
-    $categoria_id = $_GET['categoria_id'];
-    $stmt = $pdo->prepare("SELECT adicional_id FROM categoria_adicionais WHERE categoria_id = ?");
-    $stmt->execute([$categoria_id]);
-    $adicionaisVinculados = $stmt->fetchAll(PDO::FETCH_COLUMN);
-}
 ?>
 
 <!DOCTYPE html>
@@ -46,7 +62,7 @@ if (isset($_GET['categoria_id'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vincular Adicionais às Categorias - Bendita Batata</title>
+    <title>Admin - Cadastro de Adicionais</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -64,8 +80,6 @@ if (isset($_GET['categoria_id'])) {
             padding: 20px;
             border-radius: 5px;
             margin-bottom: 20px;
-            max-width: 600px;
-            margin: 0 auto;
         }
         .form-container input, .form-container select {
             width: 100%;
@@ -81,75 +95,162 @@ if (isset($_GET['categoria_id'])) {
             padding: 10px 20px;
             border-radius: 5px;
             cursor: pointer;
-            width: 100%;
         }
         .form-container button:hover {
             background-color: #218838;
         }
-        .adicionais {
-            margin-top: 20px;
+        .table-container {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 5px;
         }
-        .adicional-container {
-            border: 1px solid #ddd; /* Borda semelhante à da categoria */
-            border-radius: 5px; /* Bordas arredondadas */
-            padding: 5px 5px; /* Reduz o padding vertical (5px) e mantém o horizontal (10px) */
-            margin-bottom: 5px; /* Reduz o espaçamento entre os contêineres */
-            background-color: #fff; /* Fundo branco */
-            display: flex; /* Alinha o label e o checkbox horizontalmente */
-            align-items: center; /* Centraliza verticalmente */
+        table {
+            width: 100%;
+            border-collapse: collapse;
         }
-        .adicional-container input[type="checkbox"] {
-            margin-left: 10px; /* Espaço entre o label e o checkbox */
+        table th, table td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
         }
-        .adicional-container label {
-            margin: 0; /* Remove margens padrão do label */
-            white-space: nowrap; /* Impede que o texto quebre em várias linhas */
+        table th {
+            background-color: #f8f9fa;
+        }
+        .actions button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+        .actions button:hover {
+            background-color: #0056b3;
+        }
+        .actions button.delete {
+            background-color: #dc3545;
+        }
+        .actions button.delete:hover {
+            background-color: #c82333;
+        }
+
+        /* Estilo do overlay de loading */
+        #loadingOverlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        #loadingOverlay div {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
-    <script>
-        function confirmarSalvar() {
-            // Exibe um alerta de confirmação
-            const confirmacao = confirm("Deseja realmente salvar as alterações?");
-            
-            // Retorna true para enviar o formulário ou false para cancelar
-            return confirmacao;
-        }
-    </script>
 </head>
 <body>
-    <h1>Vincular Adicionais às Categorias</h1>
+    <h1>Admin - Cadastro de Adicionais</h1>
 
-    <!-- Formulário de Vincular Adicionais -->
-    <div class="form-container">
-        <h2>Vincular Adicionais à Categoria</h2>
-        <form method="GET" action="">
-            <select id="categoria_id" name="categoria_id" required onchange="this.form.submit()">
-                <option value="">Selecione a Categoria</option>
-                <?php foreach ($categorias as $categoria): ?>
-                    <option value="<?php echo $categoria['id']; ?>" 
-                        <?php echo (isset($_GET['categoria_id']) && $_GET['categoria_id'] == $categoria['id']) ? 'selected' : ''; ?>>
-                        <?php echo $categoria['nome']; ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-        </form>
-
-        <?php if (isset($_GET['categoria_id'])): ?>
-            <form method="POST" action="" onsubmit="return confirmarSalvar()">
-                <input type="hidden" name="categoria_id" value="<?php echo $_GET['categoria_id']; ?>">
-                <div class="adicionais">
-                    <h3>Adicionais:</h3>
-                    <?php foreach ($adicionais as $adicional): ?>
-                        <div class="adicional-container"> <!-- Contêiner retangular para cada adicional -->
-                            <label for="adicional_<?php echo $adicional['id']; ?>"><?php echo $adicional['nome']; ?></label>
-                            <input type="checkbox" id="adicional_<?php echo $adicional['id']; ?>" name="adicionais[]" value="<?php echo $adicional['id']; ?>"
-                                <?php echo in_array($adicional['id'], $adicionaisVinculados) ? 'checked' : ''; ?>>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-                <button type="submit" name="salvar">Salvar</button>
-            </form>
-        <?php endif; ?>
+    <!-- Overlay de Loading -->
+    <div id="loadingOverlay">
+        <div>
+            <p>Salvando...</p>
+            <div class="loader"></div>
+        </div>
     </div>
+
+    <!-- Formulário de Cadastro/Edição -->
+    <div class="form-container">
+        <h2>Cadastrar/Editar Adicional</h2>
+        <form id="formAdicional" method="POST" action="">
+            <input type="hidden" id="id" name="id">
+            <input type="text" id="nome" name="nome" placeholder="Nome do Adicional" required>
+            <select id="status" name="status" required>
+                <option value="ativo">Ativo</option>
+                <option value="inativo">Inativo</option>
+            </select>
+            <button type="submit" name="salvar">Salvar</button>
+        </form>
+    </div>
+
+    <!-- Tabela de Adicionais -->
+    <div class="table-container">
+        <h2>Lista de Adicionais</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nome</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($adicionais as $adicional): ?>
+                    <tr>
+                        <td><?= $adicional['id'] ?></td>
+                        <td><?= $adicional['nome'] ?></td>
+                        <td><?= $adicional['status'] ?></td>
+                        <td class='actions'>
+                            <a href='?editar=<?= $adicional['id'] ?>'><button>Editar</button></a>
+                            <a href='?excluir=<?= $adicional['id'] ?>'><button class='delete'>Excluir</button></a>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+
+    <?php
+    // Lógica para carregar dados no formulário ao editar
+    if (isset($_GET['editar'])) {
+        $id = $_GET['editar'];
+        $stmt = $pdo->prepare("SELECT * FROM adicionais WHERE id = ?");
+        $stmt->execute([$id]);
+        $adicional = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        echo "
+            <script>
+                document.getElementById('id').value = '{$adicional['id']}';
+                document.getElementById('nome').value = '{$adicional['nome']}';
+                document.getElementById('status').value = '{$adicional['status']}';
+            </script>
+        ";
+    }
+    ?>
+
+    <script>
+        // Exibe o loading ao enviar o formulário
+        document.getElementById('formAdicional').addEventListener('submit', function() {
+            document.getElementById('loadingOverlay').style.display = 'flex'; // Exibe o loading
+        });
+
+        // Oculta o loading após o envio do formulário
+        window.addEventListener('load', function() {
+            document.getElementById('loadingOverlay').style.display = 'none'; // Oculta o loading
+        });
+    </script>
 </body>
 </html>
