@@ -164,7 +164,7 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         }
         .form-container {
             display: flex;
-            gap: 30px; /* Espaçamento menor entre os campos */
+            gap: 30px;
             padding: 0 20px;
         }
         .form-group {
@@ -176,15 +176,15 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             font-size: 14px;
         }
         .form-group textarea {
-            width: 100%; /* Largura reduzida pela metade */
-            height: 25px; /* Altura fixa */
+            width: 100%;
+            height: 25px;
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 3px;
             font-size: 14px;
         }
         .form-group input[type="text"] {
-            width: 40%; /* Largura reduzida pela metade */
+            width: 40%;
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 3px;
@@ -229,26 +229,39 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         }
         @media (max-width: 768px) {
             .footer {
-                flex-direction: column; /* Coloca os elementos em coluna */
-                align-items: flex-start; /* Alinha os elementos à esquerda */
-                gap: 0px; /* Espaço entre os elementos */
-            }
-
-            .metodo-pagamento {
-                width: 100%; /* Ocupa toda a largura */
-            }
-
-            .desconto-total {
-                width: 100%; /* Ocupa toda a largura */
-                flex-direction: column; /* Coloca desconto e total em coluna */
+                flex-direction: column;
                 align-items: flex-start;
-                gap: 10px; /* Espaço entre desconto e total */
+                gap: 0px;
             }
-
+            .metodo-pagamento {
+                width: 100%;
+            }
+            .desconto-total {
+                width: 100%;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
             .finalizar-pedido {
-                width: 100%; /* Ocupa toda a largura */
-                margin-top: 10px; /* Espaço acima do botão */
+                width: 100%;
+                margin-top: 10px;
             }
+        }
+
+        /* Estilo para o spinner de carregamento */
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -315,7 +328,7 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         <div class="desconto-total">
             <div class="desconto">
                 <label for="desconto">Desconto (R$):</label>
-                <input type="text" id="desconto" name="desconto" value="0.00" oninput="validarDesconto(this)">
+                <input type="text" id="desconto" name="desconto" value="0.00" oninput="validarDesconto(this); calcularTotal();">
             </div>
             <div class="total">
                 Total a Pagar: R$ <span id="total">0.00</span>
@@ -324,6 +337,16 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 
         <!-- Botão Finalizar Pedido -->
         <button class="finalizar-pedido" onclick="finalizarPedido()">Finalizar Pedido</button>
+    </div>
+
+    <!-- Indicador de Carregamento -->
+    <div id="loading" style="display: none;">
+        <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center;">
+            <div style="background: white; padding: 20px; border-radius: 5px; text-align: center;">
+                <p>Salvando pedido...</p>
+                <div class="spinner"></div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -362,6 +385,17 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             atualizarCheckboxes(produtoId);
         }
 
+        // Função para validar o desconto (aceitar apenas números positivos)
+        function validarDesconto(input) {
+            input.value = input.value.replace(/[^0-9.]/g, '');
+            let valor = parseFloat(input.value);
+            if (isNaN(valor) || valor < 0) {
+                input.value = '0.00';
+            } else {
+                input.value = valor.toFixed(2);
+            }
+        }
+
         // Função para calcular o total a pagar
         function calcularTotal() {
             const produtos = document.querySelectorAll('.produto');
@@ -374,11 +408,8 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                 total += quantidade * preco;
             });
 
-            // Aplicar desconto
             const desconto = parseFloat(document.getElementById('desconto').value) || 0;
             total -= desconto;
-
-            // Garantir que o total não seja negativo
             total = Math.max(total, 0);
 
             document.getElementById('total').textContent = total.toFixed(2);
@@ -393,13 +424,16 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             checkboxes.forEach(checkbox => {
                 checkbox.disabled = quantidade === 0;
                 if (quantidade === 0) {
-                    checkbox.checked = false; // Desmarca o checkbox se a quantidade for zero
+                    checkbox.checked = false;
                 }
             });
         }
 
         // Função para finalizar o pedido
         function finalizarPedido() {
+            const loading = document.getElementById('loading');
+            loading.style.display = 'block';
+
             const produtos = document.querySelectorAll('.produto');
             const observacao = document.getElementById('observacao').value;
             const senha = document.getElementById('senha').value;
@@ -451,16 +485,7 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                 .then(data => {
                     if (data.status === 'success') {
                         alert('Pedido finalizado com sucesso!');
-                        console.log('Pedido:', pedido);
-                        // Limpar o carrinho após finalizar o pedido
-                        produtos.forEach(produto => {
-                            const quantidadeInput = produto.querySelector('input');
-                            quantidadeInput.value = 0;
-                        });
-                        document.getElementById('observacao').value = '';
-                        document.getElementById('senha').value = '';
-                        document.getElementById('desconto').value = '0.00';
-                        calcularTotal(); // Atualizar o total para R$ 0.00
+                        limparSelecoes();
                     } else {
                         alert('Erro ao salvar o pedido: ' + data.message);
                     }
@@ -468,11 +493,41 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                 .catch(error => {
                     console.error('Erro ao salvar pedido:', error);
                     alert('Erro ao salvar o pedido. Verifique o console para mais detalhes.');
+                })
+                .finally(() => {
+                    loading.style.display = 'none';
                 });
             } else {
                 alert('Adicione itens ao pedido antes de finalizar.');
+                loading.style.display = 'none';
             }
         }
+
+        // Função para limpar todas as seleções
+        function limparSelecoes() {
+            const produtos = document.querySelectorAll('.produto');
+            produtos.forEach(produto => {
+                const quantidadeInput = produto.querySelector('input');
+                quantidadeInput.value = 0;
+            });
+
+            const checkboxesAdicionais = document.querySelectorAll('.adicionais input[type="checkbox"]');
+            checkboxesAdicionais.forEach(checkbox => {
+                checkbox.checked = false;
+                checkbox.disabled = true;
+            });
+
+            document.getElementById('observacao').value = '';
+            document.getElementById('senha').value = '';
+            document.querySelector('input[name="metodo_pagamento"][value="cartao"]').checked = true;
+            document.getElementById('desconto').value = '0.00';
+            calcularTotal();
+        }
+
+        // Validar o desconto ao carregar a página
+        document.addEventListener('DOMContentLoaded', function () {
+            validarDesconto(document.getElementById('desconto'));
+        });
     </script>
 </body>
 </html>
