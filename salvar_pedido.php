@@ -1,6 +1,9 @@
 <?php
 require 'conexao.php';
 
+// Definir o fuso horário para Brasília
+date_default_timezone_set('America/Sao_Paulo');
+
 // Receber os dados do pedido
 $data = json_decode(file_get_contents('php://input'), true);
 
@@ -15,19 +18,12 @@ if ($data) {
         // Iniciar uma transação
         $pdo->beginTransaction();
 
-        // Obter a data e hora atual no fuso horário de São Paulo diretamente no SQL
-        $stmt = $pdo->query("SELECT SYSDATETIMEOFFSET() AT TIME ZONE 'E. South America Standard Time' AS DataHoraLocal");
-        $dataHoraLocal = $stmt->fetch(PDO::FETCH_ASSOC)['DataHoraLocal'];
-
-        // Inserir o pedido na tabela pedidos
-        $stmt = $pdo->prepare("
-            INSERT INTO pedidos (observacao, senha, metodo_pagamento, desconto, data_pedido)
-            VALUES (?, ?, ?, ?, ?)
-        ");
-        $stmt->execute([$observacao, $senha, $metodoPagamento, $desconto, $dataHoraLocal]);
+        // Inserir o pedido na tabela `pedidos`
+        $stmt = $pdo->prepare("INSERT INTO pedidos (observacao, senha, metodo_pagamento, desconto) VALUES (?, ?, ?, ?)");
+        $stmt->execute([$observacao, $senha, $metodoPagamento, $desconto]);
         $pedidoId = $pdo->lastInsertId();
 
-        // Inserir os itens do pedido na tabela itens_pedido
+        // Inserir os itens do pedido na tabela `itens_pedido`
         foreach ($itens as $item) {
             $stmt = $pdo->prepare("
                 INSERT INTO itens_pedido (pedido_id, produto_id, quantidade, valor_unitario)
@@ -41,12 +37,9 @@ if ($data) {
             ]);
             $itemPedidoId = $pdo->lastInsertId();
 
-            // Inserir os adicionais do item na tabela itens_pedido_adicionais
+            // Inserir os adicionais do item na tabela `itens_pedido_adicionais`
             foreach ($item['adicionais'] as $adicionalId) {
-                $stmt = $pdo->prepare("
-                    INSERT INTO itens_pedido_adicionais (item_pedido_id, adicional_id)
-                    VALUES (?, ?)
-                ");
+                $stmt = $pdo->prepare("INSERT INTO itens_pedido_adicionais (item_pedido_id, adicional_id) VALUES (?, ?)");
                 $stmt->execute([$itemPedidoId, $adicionalId]);
             }
         }
