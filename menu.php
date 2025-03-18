@@ -2,9 +2,8 @@
 require 'conexao.php';
 verificarLogin(); // Verifica se o usuário está logado
 
-// Verifica o tipo de usuário usando sessão
-session_start();
-$tipo_usuario = $_SESSION['tipo_usuario'] ?? 'user';
+// Verifica o tipo de usuário
+$tipo_usuario = $_COOKIE['tipo_usuario'] ?? 'user';
 ?>
 
 <!DOCTYPE html>
