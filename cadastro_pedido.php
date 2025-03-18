@@ -326,9 +326,9 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 
         <!-- Desconto e Total -->
         <div class="desconto-total">
-           <div class="desconto">
+          <div class="desconto">
     <label for="desconto">Desconto (R$):</label>
-    <input type="text" id="desconto" name="desconto" placeholder="0.00" oninput="validarDesconto(this); calcularTotal();" onblur="formatarDesconto(this);">
+    <input type="text" id="desconto" name="desconto" value="0.00" oninput="calcularTotal();">
 </div>
             <div class="total">
                 Total a Pagar: R$ <span id="total">0.00</span>
@@ -385,23 +385,12 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         atualizarCheckboxes(produtoId);
     }
 
-    // Função para validar o desconto (apenas números positivos e decimais)
-    function validarDesconto(valor) {
-        // Remove caracteres não numéricos, exceto o ponto decimal
-        valor = valor.replace(/[^0-9.]/g, '');
-
-        // Converte para número
-        valor = parseFloat(valor);
-
-        // Retorna o valor válido ou 0 se for inválido
-        return isNaN(valor) || valor < 0 ? 0 : valor;
-    }
-
     // Função para calcular o total a pagar
     function calcularTotal() {
         const produtos = document.querySelectorAll('.produto');
         let total = 0;
 
+        // Soma o valor dos produtos
         produtos.forEach(produto => {
             const quantidadeInput = produto.querySelector('input');
             const quantidade = parseInt(quantidadeInput.value) || 0;
@@ -409,10 +398,14 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             total += quantidade * preco;
         });
 
+        // Subtrai o desconto
         const desconto = parseFloat(document.getElementById('desconto').value) || 0;
         total -= desconto;
+
+        // Garante que o total não seja negativo
         total = Math.max(total, 0);
 
+        // Atualiza o valor exibido
         document.getElementById('total').textContent = total.toFixed(2);
     }
 
@@ -529,6 +522,7 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
     document.addEventListener('DOMContentLoaded', function () {
         const descontoInput = document.getElementById('desconto');
         descontoInput.value = '0.00'; // Define o valor inicial
+        calcularTotal(); // Calcula o total inicial
     });
 </script>
 </body>
