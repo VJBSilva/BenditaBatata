@@ -11,7 +11,8 @@ if (!isset($_COOKIE['usuario_id']) || $_COOKIE['tipo_usuario'] !== 'admin') {
 if (isset($_POST['salvar'])) {
     $id = $_POST['id'];
     $tipo_despesa_id = $_POST['tipo_despesa_id']; // ID do tipo de despesa
-    $valor = $_POST['valor'];
+    $valor = str_replace('.', '', $_POST['valor']); // Remove os pontos (separadores de milhares)
+    $valor = str_replace(',', '.', $valor); // Substitui a vírgula por ponto (separador decimal)
     $data = $_POST['data'];
 
     // Validação do valor
@@ -217,7 +218,7 @@ $despesas = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 document.getElementById('id').value = '{$despesa['id']}';
                 document.getElementById('tipo_despesa_id').value = '{$despesa['tipo_despesa_id']}';
                 document.getElementById('searchTipoDespesa').value = '{$despesa['tipo_despesa']}';
-                document.getElementById('valor').value = '{$despesa['valor']}';
+                document.getElementById('valor').value = '" . number_format($despesa['valor'], 2, ',', '.') . "';
                 document.getElementById('data').value = '{$despesa['data']}';
             </script>
         ";
@@ -268,6 +269,27 @@ $despesas = $stmt->fetchAll(PDO::FETCH_ASSOC);
         document.addEventListener('click', (e) => {
             if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
                 searchResults.style.display = 'none';
+            }
+        });
+
+        // Formatação do valor no frontend
+        document.getElementById('valor').addEventListener('blur', function() {
+            let valor = this.value.replace(/\./g, '').replace(',', '.'); // Remove pontos e substitui vírgula por ponto
+            valor = parseFloat(valor).toFixed(2); // Garante duas casas decimais
+            this.value = valor.replace('.', ','); // Substitui ponto por vírgula para exibição
+        });
+
+        // Validação no frontend
+        document.getElementById('formDespesa').addEventListener('submit', function(event) {
+            const valorInput = document.getElementById('valor');
+            let valor = valorInput.value.replace(/\./g, ''); // Remove pontos
+            valor = valor.replace(',', '.'); // Substitui vírgula por ponto
+
+            if (isNaN(valor) || valor <= 0) {
+                alert('O valor deve ser um número positivo válido.');
+                event.preventDefault(); // Impede o envio do formulário
+            } else {
+                valorInput.value = valor; // Atualiza o valor no campo antes de enviar
             }
         });
 
