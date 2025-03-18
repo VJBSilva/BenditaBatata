@@ -326,9 +326,9 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 
         <!-- Desconto e Total -->
         <div class="desconto-total">
-            <div class="desconto">
+           <div class="desconto">
     <label for="desconto">Desconto (R$):</label>
-    <input type="text" id="desconto" name="desconto" placeholder="0.00" oninput="validarDesconto(this); calcularTotal();">
+    <input type="text" id="desconto" name="desconto" placeholder="0.00" oninput="validarDesconto(this); calcularTotal();" onblur="formatarDesconto(this);">
 </div>
             <div class="total">
                 Total a Pagar: R$ <span id="total">0.00</span>
@@ -386,25 +386,28 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         }
 
         // Função para validar o desconto (aceitar apenas números positivos)
-        function validarDesconto(input) {
+       function validarDesconto(input) {
     // Remove caracteres não numéricos, exceto o ponto decimal
     input.value = input.value.replace(/[^0-9.]/g, '');
 
-    // Garante que o valor seja um número decimal válido
-    let valor = parseFloat(input.value);
-
-    // Se o campo estiver vazio ou o valor for inválido, define como 0.00
-    if (isNaN(valor) || valor < 0) {
-        input.value = '';
-    } else {
-        // Formata o valor para duas casas decimais
-        input.value = valor.toFixed(2);
+    // Garante que não haja mais de um ponto decimal
+    let partes = input.value.split('.');
+    if (partes.length > 2) {
+        input.value = partes[0] + '.' + partes.slice(1).join('');
     }
 
-    // Se o campo estiver vazio após a validação, define o placeholder
-    if (input.value === '') {
+    // Atualiza o cálculo do total
+    calcularTotal();
+}
+
+function formatarDesconto(input) {
+    // Converte o valor para número e formata com duas casas decimais
+    let valor = parseFloat(input.value);
+    if (isNaN(valor) || valor < 0) {
+        input.value = '';
         input.setAttribute('placeholder', '0.00');
     } else {
+        input.value = valor.toFixed(2);
         input.removeAttribute('placeholder');
     }
 }
