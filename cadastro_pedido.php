@@ -350,202 +350,186 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
     </div>
 
     <script>
-        // Função para aumentar a quantidade
-        function aumentarQuantidade(id) {
-            const input = document.getElementById(id);
-            let quantidade = parseInt(input.value) || 0;
-            quantidade++;
+    // Função para aumentar a quantidade
+    function aumentarQuantidade(id) {
+        const input = document.getElementById(id);
+        let quantidade = parseInt(input.value) || 0;
+        quantidade++;
+        input.value = quantidade;
+        calcularTotal();
+        const produtoId = id.split('_')[1];
+        atualizarCheckboxes(produtoId);
+    }
+
+    // Função para diminuir a quantidade
+    function diminuirQuantidade(id) {
+        const input = document.getElementById(id);
+        let quantidade = parseInt(input.value) || 0;
+        if (quantidade > 0) {
+            quantidade--;
             input.value = quantidade;
             calcularTotal();
             const produtoId = id.split('_')[1];
             atualizarCheckboxes(produtoId);
         }
-
-        // Função para diminuir a quantidade
-        function diminuirQuantidade(id) {
-            const input = document.getElementById(id);
-            let quantidade = parseInt(input.value) || 0;
-            if (quantidade > 0) {
-                quantidade--;
-                input.value = quantidade;
-                calcularTotal();
-                const produtoId = id.split('_')[1];
-                atualizarCheckboxes(produtoId);
-            }
-        }
-
-        // Função para validar a quantidade digitada (aceitar apenas números)
-        function validarQuantidade(input) {
-            input.value = input.value.replace(/[^0-9]/g, '');
-            if (input.value === '') {
-                input.value = 0;
-            }
-            calcularTotal();
-            const produtoId = input.id.split('_')[1];
-            atualizarCheckboxes(produtoId);
-        }
-
-        // Função para validar o desconto (aceitar apenas números positivos)
-       function validarDesconto(input) {
-    // Remove caracteres não numéricos, exceto o ponto decimal
-    input.value = input.value.replace(/[^0-9.]/g, '');
-
-    // Garante que não haja mais de um ponto decimal
-    let partes = input.value.split('.');
-    if (partes.length > 2) {
-        input.value = partes[0] + '.' + partes.slice(1).join('');
     }
 
-    // Atualiza o cálculo do total
-    calcularTotal();
-}
-
-function formatarDesconto(input) {
-    // Converte o valor para número e formata com duas casas decimais
-    let valor = parseFloat(input.value);
-    if (isNaN(valor) || valor < 0) {
-        input.value = '';
-        input.setAttribute('placeholder', '0.00');
-    } else {
-        input.value = valor.toFixed(2);
-        input.removeAttribute('placeholder');
-    }
-}
-
-        // Função para calcular o total a pagar
-        function calcularTotal() {
-            const produtos = document.querySelectorAll('.produto');
-            let total = 0;
-
-            produtos.forEach(produto => {
-                const quantidadeInput = produto.querySelector('input');
-                const quantidade = parseInt(quantidadeInput.value) || 0;
-                const preco = parseFloat(produto.getAttribute('data-preco')) || 0;
-                total += quantidade * preco;
-            });
-
-            const desconto = parseFloat(document.getElementById('desconto').value) || 0;
-            total -= desconto;
-            total = Math.max(total, 0);
-
-            document.getElementById('total').textContent = total.toFixed(2);
+    // Função para validar a quantidade digitada (aceitar apenas números)
+    function validarQuantidade(input) {
+        input.value = input.value.replace(/[^0-9]/g, '');
+        if (input.value === '') {
+            input.value = 0;
         }
+        calcularTotal();
+        const produtoId = input.id.split('_')[1];
+        atualizarCheckboxes(produtoId);
+    }
 
-        // Função para habilitar/desabilitar checkboxes com base na quantidade
-        function atualizarCheckboxes(produtoId) {
-            const quantidadeInput = document.getElementById(`produto_${produtoId}`);
+    // Função para validar o desconto (apenas números positivos e decimais)
+    function validarDesconto(valor) {
+        // Remove caracteres não numéricos, exceto o ponto decimal
+        valor = valor.replace(/[^0-9.]/g, '');
+
+        // Converte para número
+        valor = parseFloat(valor);
+
+        // Retorna o valor válido ou 0 se for inválido
+        return isNaN(valor) || valor < 0 ? 0 : valor;
+    }
+
+    // Função para calcular o total a pagar
+    function calcularTotal() {
+        const produtos = document.querySelectorAll('.produto');
+        let total = 0;
+
+        produtos.forEach(produto => {
+            const quantidadeInput = produto.querySelector('input');
             const quantidade = parseInt(quantidadeInput.value) || 0;
-            const checkboxes = document.querySelectorAll(`.produto[data-id="${produtoId}"] .adicionais input[type="checkbox"]`);
+            const preco = parseFloat(produto.getAttribute('data-preco')) || 0;
+            total += quantidade * preco;
+        });
 
-            checkboxes.forEach(checkbox => {
-                checkbox.disabled = quantidade === 0;
-                if (quantidade === 0) {
-                    checkbox.checked = false;
-                }
-            });
-        }
+        const desconto = parseFloat(document.getElementById('desconto').value) || 0;
+        total -= desconto;
+        total = Math.max(total, 0);
 
-        // Função para finalizar o pedido
-        function finalizarPedido() {
-            const loading = document.getElementById('loading');
-            loading.style.display = 'block';
+        document.getElementById('total').textContent = total.toFixed(2);
+    }
 
-            const produtos = document.querySelectorAll('.produto');
-            const observacao = document.getElementById('observacao').value;
-            const senha = document.getElementById('senha').value;
-            const metodoPagamento = document.querySelector('input[name="metodo_pagamento"]:checked').value;
-            const desconto = parseFloat(document.getElementById('desconto').value) || 0;
+    // Função para habilitar/desabilitar checkboxes com base na quantidade
+    function atualizarCheckboxes(produtoId) {
+        const quantidadeInput = document.getElementById(`produto_${produtoId}`);
+        const quantidade = parseInt(quantidadeInput.value) || 0;
+        const checkboxes = document.querySelectorAll(`.produto[data-id="${produtoId}"] .adicionais input[type="checkbox"]`);
 
-            let pedido = {
-                observacao: observacao,
-                senha: senha,
-                metodo_pagamento: metodoPagamento,
-                desconto: desconto,
-                itens: []
-            };
-
-            produtos.forEach(produto => {
-                const produtoId = produto.getAttribute('data-id');
-                const quantidadeInput = produto.querySelector('input');
-                const quantidade = parseInt(quantidadeInput.value) || 0;
-                if (quantidade > 0) {
-                    const adicionais = produto.querySelectorAll('.adicionais input[type="checkbox"]:checked');
-                    const adicionaisSelecionados = [];
-                    adicionais.forEach(adicional => {
-                        adicionaisSelecionados.push(adicional.value);
-                    });
-
-                    pedido.itens.push({
-                        produto_id: produtoId,
-                        quantidade: quantidade,
-                        preco_unitario: parseFloat(produto.getAttribute('data-preco')),
-                        adicionais: adicionaisSelecionados
-                    });
-                }
-            });
-
-            if (pedido.itens.length > 0) {
-                fetch('salvar_pedido.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(pedido)
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Erro na requisição: ' + response.statusText);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.status === 'success') {
-                        alert('Pedido finalizado com sucesso!');
-                        limparSelecoes();
-                    } else {
-                        alert('Erro ao salvar o pedido: ' + data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Erro ao salvar pedido:', error);
-                    alert('Erro ao salvar o pedido. Verifique o console para mais detalhes.');
-                })
-                .finally(() => {
-                    loading.style.display = 'none';
-                });
-            } else {
-                alert('Adicione itens ao pedido antes de finalizar.');
-                loading.style.display = 'none';
-            }
-        }
-
-        // Função para limpar todas as seleções
-        function limparSelecoes() {
-            const produtos = document.querySelectorAll('.produto');
-            produtos.forEach(produto => {
-                const quantidadeInput = produto.querySelector('input');
-                quantidadeInput.value = 0;
-            });
-
-            const checkboxesAdicionais = document.querySelectorAll('.adicionais input[type="checkbox"]');
-            checkboxesAdicionais.forEach(checkbox => {
+        checkboxes.forEach(checkbox => {
+            checkbox.disabled = quantidade === 0;
+            if (quantidade === 0) {
                 checkbox.checked = false;
-                checkbox.disabled = true;
+            }
+        });
+    }
+
+    // Função para finalizar o pedido
+    function finalizarPedido() {
+        const loading = document.getElementById('loading');
+        loading.style.display = 'block';
+
+        const produtos = document.querySelectorAll('.produto');
+        const observacao = document.getElementById('observacao').value;
+        const senha = document.getElementById('senha').value;
+        const metodoPagamento = document.querySelector('input[name="metodo_pagamento"]:checked').value;
+        const desconto = validarDesconto(document.getElementById('desconto').value); // Valida o desconto
+
+        let pedido = {
+            observacao: observacao,
+            senha: senha,
+            metodo_pagamento: metodoPagamento,
+            desconto: desconto,
+            itens: []
+        };
+
+        produtos.forEach(produto => {
+            const produtoId = produto.getAttribute('data-id');
+            const quantidadeInput = produto.querySelector('input');
+            const quantidade = parseInt(quantidadeInput.value) || 0;
+            if (quantidade > 0) {
+                const adicionais = produto.querySelectorAll('.adicionais input[type="checkbox"]:checked');
+                const adicionaisSelecionados = [];
+                adicionais.forEach(adicional => {
+                    adicionaisSelecionados.push(adicional.value);
+                });
+
+                pedido.itens.push({
+                    produto_id: produtoId,
+                    quantidade: quantidade,
+                    preco_unitario: parseFloat(produto.getAttribute('data-preco')),
+                    adicionais: adicionaisSelecionados
+                });
+            }
+        });
+
+        if (pedido.itens.length > 0) {
+            fetch('salvar_pedido.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(pedido)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erro na requisição: ' + response.statusText);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.status === 'success') {
+                    alert('Pedido finalizado com sucesso!');
+                    limparSelecoes();
+                } else {
+                    alert('Erro ao salvar o pedido: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao salvar pedido:', error);
+                alert('Erro ao salvar o pedido. Verifique o console para mais detalhes.');
+            })
+            .finally(() => {
+                loading.style.display = 'none';
             });
-
-            document.getElementById('observacao').value = '';
-            document.getElementById('senha').value = '';
-            document.querySelector('input[name="metodo_pagamento"][value="cartao"]').checked = true;
-            document.getElementById('desconto').value = '0.00';
-            calcularTotal();
+        } else {
+            alert('Adicione itens ao pedido antes de finalizar.');
+            loading.style.display = 'none';
         }
+    }
 
-        // Validar o desconto ao carregar a página
-       document.addEventListener('DOMContentLoaded', function () {
-    const descontoInput = document.getElementById('desconto');
-    descontoInput.setAttribute('placeholder', '0.00');
-    validarDesconto(descontoInput);
-});
-    </script>
+    // Função para limpar todas as seleções
+    function limparSelecoes() {
+        const produtos = document.querySelectorAll('.produto');
+        produtos.forEach(produto => {
+            const quantidadeInput = produto.querySelector('input');
+            quantidadeInput.value = 0;
+        });
+
+        const checkboxesAdicionais = document.querySelectorAll('.adicionais input[type="checkbox"]');
+        checkboxesAdicionais.forEach(checkbox => {
+            checkbox.checked = false;
+            checkbox.disabled = true;
+        });
+
+        document.getElementById('observacao').value = '';
+        document.getElementById('senha').value = '';
+        document.querySelector('input[name="metodo_pagamento"][value="cartao"]').checked = true;
+        document.getElementById('desconto').value = '0.00';
+        calcularTotal();
+    }
+
+    // Inicialização ao carregar a página
+    document.addEventListener('DOMContentLoaded', function () {
+        const descontoInput = document.getElementById('desconto');
+        descontoInput.value = '0.00'; // Define o valor inicial
+    });
+</script>
 </body>
 </html>
