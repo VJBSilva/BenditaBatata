@@ -1,9 +1,6 @@
 <?php
 require 'conexao.php';
 
-// Definir o fuso horário para Brasília
-date_default_timezone_set('America/Sao_Paulo');
-
 // Receber os dados do pedido
 $data = json_decode(file_get_contents('php://input'), true);
 
