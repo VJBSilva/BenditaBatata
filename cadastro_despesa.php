@@ -39,7 +39,7 @@ if (isset($_POST['salvar'])) {
 // Lógica para excluir despesa
 if (isset($_GET['excluir'])) {
     $id = $_GET['excluir'];
-    $stmt = $pdo->prepare("UPDATE despesas SET status= 'excluido' WHERE id = ?");
+    $stmt = $pdo->prepare("UPDATE despesas SET status = 'excluido' WHERE id = ?");
     $stmt->execute([$id]);
 
     // Redirecionar para evitar reenvio do formulário
@@ -52,7 +52,7 @@ $stmt = $pdo->query("SELECT * FROM tipo_despesa WHERE status = 'ativo'");
 $tipos_despesa = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Carregar despesas
-$stmt = $pdo->query("SELECT d.id, d.valor, d.data, t.nome AS tipo_despesa FROM despesas d JOIN tipo_despesa t ON d.tipo_despesa_id = t.id");
+$stmt = $pdo->query("SELECT d.id, d.valor, d.data, t.nome AS tipo_despesa FROM despesas d JOIN tipo_despesa t ON d.tipo_despesa_id = t.id WHERE d.status = 'ativo'");
 $despesas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
@@ -272,18 +272,19 @@ $despesas = $stmt->fetchAll(PDO::FETCH_ASSOC);
             }
         });
 
-        // Formatação do valor no frontend
+        // Formatação do valor no frontend (ao sair do campo)
         document.getElementById('valor').addEventListener('blur', function() {
-            let valor = this.value.replace(/\./g, '').replace(',', '.'); // Remove pontos e substitui vírgula por ponto
+            let valor = this.value.replace(/\./g, ''); // Remove todos os pontos
+            valor = valor.replace(',', '.'); // Substitui a vírgula por ponto
             valor = parseFloat(valor).toFixed(2); // Garante duas casas decimais
-            this.value = valor.replace('.', ','); // Substitui ponto por vírgula para exibição
+            this.value = valor.replace('.', ','); // Substitui o ponto por vírgula para exibição
         });
 
-        // Validação no frontend
+        // Validação no frontend (ao enviar o formulário)
         document.getElementById('formDespesa').addEventListener('submit', function(event) {
             const valorInput = document.getElementById('valor');
-            let valor = valorInput.value.replace(/\./g, ''); // Remove pontos
-            valor = valor.replace(',', '.'); // Substitui vírgula por ponto
+            let valor = valorInput.value.replace(/\./g, ''); // Remove todos os pontos
+            valor = valor.replace(',', '.'); // Substitui a vírgula por ponto
 
             if (isNaN(valor) || valor <= 0) {
                 alert('O valor deve ser um número positivo válido.');
