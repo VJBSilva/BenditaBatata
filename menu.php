@@ -2,8 +2,9 @@
 require 'conexao.php';
 verificarLogin(); // Verifica se o usuário está logado
 
-// Verifica o tipo de usuário
-$tipo_usuario = $_COOKIE['tipo_usuario'] ?? 'user';
+// Verifica o tipo de usuário usando sessão
+session_start();
+$tipo_usuario = $_SESSION['tipo_usuario'] ?? 'user';
 ?>
 
 <!DOCTYPE html>
@@ -65,27 +66,28 @@ $tipo_usuario = $_COOKIE['tipo_usuario'] ?? 'user';
         <button onclick="window.location.href='visualizar_pedidos.php'">Visualizar Pedidos</button>
 
         <?php if ($tipo_usuario === 'admin'): ?>
-            <button onclick="toggleSubMenu()">Cadastros</button>
-            <div class="sub-menu" id="subMenu">
+            <button onclick="toggleSubMenu('subMenuCadastros')">Cadastros</button>
+            <div class="sub-menu" id="subMenuCadastros">
                 <button onclick="window.location.href='cadastro_categoria.php'">Cadastro de Categoria</button>
                 <button onclick="window.location.href='cadastro_produto.php'">Cadastro de Produto</button>
                 <button onclick="window.location.href='cadastro_adicionais.php'">Cadastro de Opcional</button>
                 <button onclick="window.location.href='cadastro_vincular_adicionais.php'">Vincular Opcional</button>
-                 <button onclick="window.location.href='cadastro_usuario.php'">Cadastro de Usuário</button>
-               
+                <button onclick="window.location.href='cadastro_usuario.php'">Cadastro de Usuário</button>
+            </div>
+
+            <button onclick="toggleSubMenu('subMenuRelatorios')">Relatórios</button>
+            <div class="sub-menu" id="subMenuRelatorios">
+                <button onclick="window.location.href='relatorio_vendas.php'">Relatório de Venda</button>
+                <button onclick="window.location.href='relatorio_despesas.php'">Relatório de Despesa</button>
             </div>
         <?php endif; ?>
- <?php if ($tipo_usuario === 'admin'): ?>
-     <button onclick="window.location.href='relatorio_vendas.php'">Relatório de Vendas</button>
-      <?php endif; ?>
-    
 
         <button onclick="window.location.href='logout.php'">Sair</button>
     </div>
 
     <script>
-        function toggleSubMenu() {
-            const subMenu = document.getElementById('subMenu');
+        function toggleSubMenu(id) {
+            const subMenu = document.getElementById(id);
             subMenu.style.display = subMenu.style.display === 'block' ? 'none' : 'block';
         }
     </script>
