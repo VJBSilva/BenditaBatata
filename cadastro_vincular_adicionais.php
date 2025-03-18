@@ -24,7 +24,7 @@ if (isset($_POST['salvar'])) {
 }
 
 // Carregar categorias
-$stmt = $pdo->query("SELECT * FROM categorias WHERE status = 'ativo");
+$stmt = $pdo->query("SELECT * FROM categorias WHERE status = 'ativo'");
 $categorias = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Carregar adicionais
