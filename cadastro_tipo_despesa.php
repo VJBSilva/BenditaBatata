@@ -1,5 +1,5 @@
 <?php
-require 'conexao.php';
+require 'conexao.php'; // Arquivo de conexão com o banco de dados
 
 // Verifica se o usuário está logado e é um administrador
 if (!isset($_COOKIE['usuario_id']) || $_COOKIE['tipo_usuario'] !== 'admin') {
@@ -17,9 +17,9 @@ if (isset($_POST['salvar'])) {
     if (!$id) {
         $stmt = $pdo->prepare("SELECT id FROM tipo_despesa WHERE nome = ?");
         $stmt->execute([$nome]);
-        $despesaExistente = $stmt->fetch(PDO::FETCH_ASSOC);
+        $tipoExistente = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if ($despesaExistente) {
+        if ($tipoExistente) {
             echo "<script>alert('Tipo de despesa já cadastrado!');</script>";
             exit();
         }
@@ -54,7 +54,7 @@ if (isset($_GET['excluir'])) {
 
 // Carregar tipos de despesa
 $stmt = $pdo->query("SELECT * FROM tipo_despesa");
-$tiposDespesa = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$tipos_despesa = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <!DOCTYPE html>
@@ -135,30 +135,70 @@ $tiposDespesa = $stmt->fetchAll(PDO::FETCH_ASSOC);
         .actions button.delete:hover {
             background-color: #c82333;
         }
+    </style>
+</head>
+<body>
+    <h1>Admin - Cadastro de Tipo de Despesa</h1>
 
-        /* Estilo do overlay de loading */
-        #loadingOverlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-        #loadingOverlay div {
-            background-color: white;
-            padding: 20px;
-            border-radius: 5px;
-            text-align: center;
-        }
-        .loader {
-            border: 5px solid #f3f3f3;
-            border-top: 5px solid #3498db;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation
+    <!-- Formulário de Cadastro/Edição -->
+    <div class="form-container">
+        <h2>Cadastrar/Editar Tipo de Despesa</h2>
+        <form id="formTipoDespesa" method="POST" action="">
+            <input type="hidden" id="id" name="id">
+            <input type="text" id="nome" name="nome" placeholder="Nome do Tipo de Despesa" required>
+            <select id="status" name="status" required>
+                <option value="ativo">Ativo</option>
+                <option value="inativo">Inativo</option>
+                <option value="excluido">Excluído</option>
+            </select>
+            <button type="submit" name="salvar">Salvar</button>
+        </form>
+    </div>
+
+    <!-- Tabela de Tipos de Despesa -->
+    <div class="table-container">
+        <h2>Lista de Tipos de Despesa</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nome</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($tipos_despesa as $tipo): ?>
+                    <tr>
+                        <td><?= $tipo['id'] ?></td>
+                        <td><?= $tipo['nome'] ?></td>
+                        <td><?= $tipo['status'] ?></td>
+                        <td class='actions'>
+                            <a href='?editar=<?= $tipo['id'] ?>'><button>Editar</button></a>
+                            <a href='?excluir=<?= $tipo['id'] ?>'><button class='delete'>Excluir</button></a>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+
+    <?php
+    // Lógica para carregar dados no formulário ao editar
+    if (isset($_GET['editar'])) {
+        $id = $_GET['editar'];
+        $stmt = $pdo->prepare("SELECT * FROM tipo_despesa WHERE id = ?");
+        $stmt->execute([$id]);
+        $tipo = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        echo "
+            <script>
+                document.getElementById('id').value = '{$tipo['id']}';
+                document.getElementById('nome').value = '{$tipo['nome']}';
+                document.getElementById('status').value = '{$tipo['status']}';
+            </script>
+        ";
+    }
+    ?>
+</body>
+</html>
