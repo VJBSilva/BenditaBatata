@@ -52,6 +52,8 @@ $despesas = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin - Cadastro de Despesas</title>
+    <!-- Adicionando FontAwesome para o ícone da lupa -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -144,6 +146,13 @@ $despesas = $stmt->fetchAll(PDO::FETCH_ASSOC);
         .search-container .search-results div:hover {
             background-color: #f1f1f1;
         }
+        .lupa {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -156,6 +165,7 @@ $despesas = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <input type="hidden" id="id" name="id">
             <div class="search-container">
                 <input type="text" id="searchTipoDespesa" placeholder="Pesquisar tipo de despesa..." autocomplete="off">
+                <i class="fas fa-search lupa" onclick="mostrarTodasDespesas()"></i> <!-- Ícone da lupa -->
                 <input type="hidden" id="tipo_despesa_id" name="tipo_despesa_id">
                 <div class="search-results" id="searchResults"></div>
             </div>
@@ -254,6 +264,25 @@ $despesas = $stmt->fetchAll(PDO::FETCH_ASSOC);
             } else {
                 searchResults.style.display = 'none';
             }
+        }
+
+        // Função para mostrar todas as despesas ao clicar na lupa
+        function mostrarTodasDespesas() {
+            // Limpar resultados anteriores
+            searchResults.innerHTML = '';
+
+            // Exibir todos os tipos de despesa
+            tiposDespesa.forEach(tipo => {
+                const div = document.createElement('div');
+                div.textContent = tipo.nome;
+                div.addEventListener('click', () => {
+                    searchInput.value = tipo.nome; // Preenche o campo de pesquisa
+                    tipoDespesaIdInput.value = tipo.id; // Armazena o ID
+                    searchResults.style.display = 'none'; // Oculta os resultados
+                });
+                searchResults.appendChild(div);
+            });
+            searchResults.style.display = 'block';
         }
 
         // Evento de input no campo de pesquisa
