@@ -149,7 +149,6 @@ $tipos_despesa = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <select id="status" name="status" required>
                 <option value="ativo">Ativo</option>
                 <option value="inativo">Inativo</option>
-                <option value="excluido">Excluído</option>
             </select>
             <button type="submit" name="salvar">Salvar</button>
         </form>
