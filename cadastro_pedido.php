@@ -327,9 +327,9 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         <!-- Desconto e Total -->
         <div class="desconto-total">
             <div class="desconto">
-                <label for="desconto">Desconto (R$):</label>
-                <input type="text" id="desconto" name="desconto" value="0.00" oninput="validarDesconto(this); calcularTotal();">
-            </div>
+    <label for="desconto">Desconto (R$):</label>
+    <input type="text" id="desconto" name="desconto" placeholder="0.00" oninput="validarDesconto(this); calcularTotal();">
+</div>
             <div class="total">
                 Total a Pagar: R$ <span id="total">0.00</span>
             </div>
@@ -387,14 +387,27 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 
         // Função para validar o desconto (aceitar apenas números positivos)
         function validarDesconto(input) {
-            input.value = input.value.replace(/[^0-9.]/g, '');
-            let valor = parseFloat(input.value);
-            if (isNaN(valor) || valor < 0) {
-                input.value = '0.00';
-            } else {
-                input.value = valor.toFixed(2);
-            }
-        }
+    // Remove caracteres não numéricos, exceto o ponto decimal
+    input.value = input.value.replace(/[^0-9.]/g, '');
+
+    // Garante que o valor seja um número decimal válido
+    let valor = parseFloat(input.value);
+
+    // Se o campo estiver vazio ou o valor for inválido, define como 0.00
+    if (isNaN(valor) || valor < 0) {
+        input.value = '';
+    } else {
+        // Formata o valor para duas casas decimais
+        input.value = valor.toFixed(2);
+    }
+
+    // Se o campo estiver vazio após a validação, define o placeholder
+    if (input.value === '') {
+        input.setAttribute('placeholder', '0.00');
+    } else {
+        input.removeAttribute('placeholder');
+    }
+}
 
         // Função para calcular o total a pagar
         function calcularTotal() {
@@ -525,9 +538,11 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         }
 
         // Validar o desconto ao carregar a página
-        document.addEventListener('DOMContentLoaded', function () {
-            validarDesconto(document.getElementById('desconto'));
-        });
+       document.addEventListener('DOMContentLoaded', function () {
+    const descontoInput = document.getElementById('desconto');
+    descontoInput.setAttribute('placeholder', '0.00');
+    validarDesconto(descontoInput);
+});
     </script>
 </body>
 </html>
