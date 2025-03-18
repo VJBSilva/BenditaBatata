@@ -14,6 +14,7 @@ if (isset($_POST['salvar'])) {
     $valor = str_replace('.', '', $_POST['valor']); // Remove os pontos (separadores de milhares)
     $valor = str_replace(',', '.', $valor); // Substitui a vírgula por ponto (separador decimal)
     $data = $_POST['data'];
+    $numero_documento = $_POST['numero_documento']; // Captura o número do documento
 
     // Validação do valor
     if (!is_numeric($valor) || $valor <= 0) {
@@ -21,12 +22,12 @@ if (isset($_POST['salvar'])) {
     } else {
         if ($id) {
             // Editar despesa existente
-            $stmt = $pdo->prepare("UPDATE despesas SET tipo_despesa_id = ?, valor = ?, data = ? WHERE id = ?");
-            $stmt->execute([$tipo_despesa_id, $valor, $data, $id]);
+            $stmt = $pdo->prepare("UPDATE despesas SET tipo_despesa_id = ?, valor = ?, data = ?, numero_documento = ? WHERE id = ?");
+            $stmt->execute([$tipo_despesa_id, $valor, $data, $numero_documento, $id]);
         } else {
             // Cadastrar nova despesa
-            $stmt = $pdo->prepare("INSERT INTO despesas (tipo_despesa_id, valor, data) VALUES (?, ?, ?)");
-            $stmt->execute([$tipo_despesa_id, $valor, $data]);
+            $stmt = $pdo->prepare("INSERT INTO despesas (tipo_despesa_id, valor, data, numero_documento) VALUES (?, ?, ?, ?)");
+            $stmt->execute([$tipo_despesa_id, $valor, $data, $numero_documento]);
             $id = $pdo->lastInsertId();
         }
 
@@ -52,7 +53,7 @@ $stmt = $pdo->query("SELECT * FROM tipo_despesa WHERE status = 'ativo'");
 $tipos_despesa = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Carregar despesas
-$stmt = $pdo->query("SELECT d.id, d.valor, d.data, t.nome AS tipo_despesa FROM despesas d JOIN tipo_despesa t ON d.tipo_despesa_id = t.id WHERE d.status = 'ativo'");
+$stmt = $pdo->query("SELECT d.id, d.valor, d.data, d.numero_documento, t.nome AS tipo_despesa FROM despesas d JOIN tipo_despesa t ON d.tipo_despesa_id = t.id WHERE d.status = 'ativo'");
 $despesas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
@@ -171,6 +172,7 @@ $despesas = $stmt->fetchAll(PDO::FETCH_ASSOC);
             </div>
             <input type="text" id="valor" name="valor" placeholder="Valor" required>
             <input type="date" id="data" name="data" required>
+            <input type="text" id="numero_documento" name="numero_documento" placeholder="Número do Documento (opcional)">
             <button type="submit" name="salvar">Salvar</button>
         </form>
     </div>
@@ -185,6 +187,7 @@ $despesas = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <th>Tipo de Despesa</th>
                     <th>Valor</th>
                     <th>Data</th>
+                    <th>Número do Documento</th>
                     <th>Ações</th>
                 </tr>
             </thead>
@@ -195,6 +198,7 @@ $despesas = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <td><?= $despesa['tipo_despesa'] ?></td>
                         <td>R$ <?= number_format($despesa['valor'], 2, ',', '.') ?></td>
                         <td><?= date('d/m/Y', strtotime($despesa['data'])) ?></td>
+                        <td><?= $despesa['numero_documento'] ?? 'N/A' ?></td> <!-- Exibe "N/A" se o campo for NULL -->
                         <td class='actions'>
                             <a href='?editar=<?= $despesa['id'] ?>'><button>Editar</button></a>
                             <a href='?excluir=<?= $despesa['id'] ?>'><button class='delete'>Excluir</button></a>
@@ -220,6 +224,7 @@ $despesas = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 document.getElementById('searchTipoDespesa').value = '{$despesa['tipo_despesa']}';
                 document.getElementById('valor').value = '" . number_format($despesa['valor'], 2, ',', '.') . "';
                 document.getElementById('data').value = '{$despesa['data']}';
+                document.getElementById('numero_documento').value = '{$despesa['numero_documento']}';
             </script>
         ";
     }
