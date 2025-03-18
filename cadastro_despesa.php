@@ -278,26 +278,26 @@ $despesas = $stmt->fetchAll(PDO::FETCH_ASSOC);
         });
 
         // Formatação do valor no frontend (ao sair do campo)
-        document.getElementById('valor').addEventListener('blur', function() {
-            let valor = this.value.replace(/\./g, ''); // Remove todos os pontos
-            valor = valor.replace(',', '.'); // Substitui a vírgula por ponto
-            valor = parseFloat(valor).toFixed(2); // Garante duas casas decimais
-            this.value = valor.replace('.', ','); // Substitui o ponto por vírgula para exibição
-        });
+document.getElementById('valor').addEventListener('blur', function() {
+    let valor = this.value.replace(/\./g, ''); // Remove todos os pontos
+    valor = valor.replace(',', '.'); // Substitui a vírgula por ponto
+    valor = parseFloat(valor).toFixed(2); // Garante duas casas decimais
+    this.value = valor.replace('.', ','); // Substitui o ponto por vírgula para exibição
+});
 
-        // Validação no frontend (ao enviar o formulário)
-        document.getElementById('formDespesa').addEventListener('submit', function(event) {
-            const valorInput = document.getElementById('valor');
-            let valor = valorInput.value.replace(/\./g, ''); // Remove todos os pontos
-            valor = valor.replace(',', '.'); // Substitui a vírgula por ponto
+// Validação no frontend (ao enviar o formulário)
+document.getElementById('formDespesa').addEventListener('submit', function(event) {
+    const valorInput = document.getElementById('valor');
+    let valor = valorInput.value.replace(/\./g, ''); // Remove todos os pontos
+    valor = valor.replace(',', '.'); // Substitui a vírgula por ponto
 
-            if (isNaN(valor) || valor <= 0) {
-                alert('O valor deve ser um número positivo válido.');
-                event.preventDefault(); // Impede o envio do formulário
-            } else {
-                valorInput.value = valor; // Atualiza o valor no campo antes de enviar
-            }
-        });
+    if (isNaN(valor) || valor <= 0) {
+        alert('O valor deve ser um número positivo válido.');
+        event.preventDefault(); // Impede o envio do formulário
+    } else {
+        valorInput.value = valor; // Atualiza o valor no campo antes de enviar
+    }
+});
 
         // Definir a data atual como valor padrão no campo de data
         document.getElementById('data').value = new Date().toISOString().split('T')[0];
