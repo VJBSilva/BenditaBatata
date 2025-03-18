@@ -10,30 +10,35 @@ if (!isset($_COOKIE['usuario_id']) || $_COOKIE['tipo_usuario'] !== 'admin') {
 // Lógica para salvar/editar despesa
 if (isset($_POST['salvar'])) {
     $id = $_POST['id'];
-    $tipo_despesa_id = $_POST['tipo_despesa_id'];
+    $tipo_despesa_id = $_POST['tipo_despesa_id']; // ID do tipo de despesa
     $valor = $_POST['valor'];
     $data = $_POST['data'];
 
-    if ($id) {
-        // Editar despesa existente
-        $stmt = $pdo->prepare("UPDATE despesas SET tipo_despesa_id = ?, valor = ?, data = ? WHERE id = ?");
-        $stmt->execute([$tipo_despesa_id, $valor, $data, $id]);
+    // Validação do valor
+    if (!is_numeric($valor) || $valor <= 0) {
+        echo "<script>alert('O valor deve ser um número positivo válido.');</script>";
     } else {
-        // Cadastrar nova despesa
-        $stmt = $pdo->prepare("INSERT INTO despesas (tipo_despesa_id, valor, data) VALUES (?, ?, ?)");
-        $stmt->execute([$tipo_despesa_id, $valor, $data]);
-        $id = $pdo->lastInsertId();
-    }
+        if ($id) {
+            // Editar despesa existente
+            $stmt = $pdo->prepare("UPDATE despesas SET tipo_despesa_id = ?, valor = ?, data = ? WHERE id = ?");
+            $stmt->execute([$tipo_despesa_id, $valor, $data, $id]);
+        } else {
+            // Cadastrar nova despesa
+            $stmt = $pdo->prepare("INSERT INTO despesas (tipo_despesa_id, valor, data) VALUES (?, ?, ?)");
+            $stmt->execute([$tipo_despesa_id, $valor, $data]);
+            $id = $pdo->lastInsertId();
+        }
 
-    // Redirecionar para evitar reenvio do formulário
-    header("Location: cadastro_despesa.php");
-    exit();
+        // Redirecionar para evitar reenvio do formulário
+        header("Location: cadastro_despesa.php");
+        exit();
+    }
 }
 
 // Lógica para excluir despesa
 if (isset($_GET['excluir'])) {
     $id = $_GET['excluir'];
-    $stmt = $pdo->prepare("DELETE FROM despesas WHERE id = ?");
+    $stmt = $pdo->prepare("UPDATE despesas SET status= 'excluido' WHERE id = ?");
     $stmt->execute([$id]);
 
     // Redirecionar para evitar reenvio do formulário
@@ -74,7 +79,7 @@ $despesas = $stmt->fetchAll(PDO::FETCH_ASSOC);
             border-radius: 5px;
             margin-bottom: 20px;
         }
-        .form-container input, .form-container select {
+        .form-container input {
             width: 100%;
             padding: 10px;
             margin-bottom: 10px;
@@ -128,6 +133,26 @@ $despesas = $stmt->fetchAll(PDO::FETCH_ASSOC);
         .actions button.delete:hover {
             background-color: #c82333;
         }
+        .search-container {
+            position: relative;
+        }
+        .search-container .search-results {
+            position: absolute;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            width: 100%;
+            max-height: 150px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+        .search-container .search-results div {
+            padding: 10px;
+            cursor: pointer;
+        }
+        .search-container .search-results div:hover {
+            background-color: #f1f1f1;
+        }
     </style>
 </head>
 <body>
@@ -138,13 +163,12 @@ $despesas = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <h2>Cadastrar/Editar Despesa</h2>
         <form id="formDespesa" method="POST" action="">
             <input type="hidden" id="id" name="id">
-            <select id="tipo_despesa_id" name="tipo_despesa_id" required>
-                <option value="">Selecione o tipo de despesa</option>
-                <?php foreach ($tipos_despesa as $tipo): ?>
-                    <option value="<?= $tipo['id'] ?>"><?= $tipo['nome'] ?></option>
-                <?php endforeach; ?>
-            </select>
-            <input type="number" id="valor" name="valor" placeholder="Valor" step="0.01" required>
+            <div class="search-container">
+                <input type="text" id="searchTipoDespesa" placeholder="Pesquisar tipo de despesa..." autocomplete="off">
+                <input type="hidden" id="tipo_despesa_id" name="tipo_despesa_id">
+                <div class="search-results" id="searchResults"></div>
+            </div>
+            <input type="text" id="valor" name="valor" placeholder="Valor" required>
             <input type="date" id="data" name="data" required>
             <button type="submit" name="salvar">Salvar</button>
         </form>
@@ -192,11 +216,63 @@ $despesas = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <script>
                 document.getElementById('id').value = '{$despesa['id']}';
                 document.getElementById('tipo_despesa_id').value = '{$despesa['tipo_despesa_id']}';
+                document.getElementById('searchTipoDespesa').value = '{$despesa['tipo_despesa']}';
                 document.getElementById('valor').value = '{$despesa['valor']}';
                 document.getElementById('data').value = '{$despesa['data']}';
             </script>
         ";
     }
     ?>
+
+    <script>
+        // Dados dos tipos de despesa (carregados do PHP)
+        const tiposDespesa = <?= json_encode($tipos_despesa) ?>;
+
+        // Elementos do DOM
+        const searchInput = document.getElementById('searchTipoDespesa');
+        const searchResults = document.getElementById('searchResults');
+        const tipoDespesaIdInput = document.getElementById('tipo_despesa_id');
+
+        // Função para filtrar e exibir resultados
+        function filtrarTipoDespesa() {
+            const termo = searchInput.value.toLowerCase();
+            const resultados = tiposDespesa.filter(tipo => 
+                tipo.nome.toLowerCase().includes(termo)
+            );
+
+            // Limpar resultados anteriores
+            searchResults.innerHTML = '';
+
+            // Exibir novos resultados
+            if (resultados.length > 0) {
+                resultados.forEach(tipo => {
+                    const div = document.createElement('div');
+                    div.textContent = tipo.nome;
+                    div.addEventListener('click', () => {
+                        searchInput.value = tipo.nome; // Preenche o campo de pesquisa
+                        tipoDespesaIdInput.value = tipo.id; // Armazena o ID
+                        searchResults.style.display = 'none'; // Oculta os resultados
+                    });
+                    searchResults.appendChild(div);
+                });
+                searchResults.style.display = 'block';
+            } else {
+                searchResults.style.display = 'none';
+            }
+        }
+
+        // Evento de input no campo de pesquisa
+        searchInput.addEventListener('input', filtrarTipoDespesa);
+
+        // Ocultar resultados ao clicar fora
+        document.addEventListener('click', (e) => {
+            if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+                searchResults.style.display = 'none';
+            }
+        });
+
+        // Definir a data atual como valor padrão no campo de data
+        document.getElementById('data').value = new Date().toISOString().split('T')[0];
+    </script>
 </body>
 </html>
