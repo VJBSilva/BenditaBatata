@@ -277,12 +277,24 @@ $despesas = $stmt->fetchAll(PDO::FETCH_ASSOC);
             }
         });
 
+        // Função para formatar o valor no padrão brasileiro
+        function formatarValorParaExibicao(valor) {
+            // Converte o valor para número
+            valor = parseFloat(valor);
+
+            // Formata o valor no padrão brasileiro
+            return valor.toLocaleString('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
         // Formatação do valor no frontend (ao sair do campo)
         document.getElementById('valor').addEventListener('blur', function() {
             let valor = this.value.replace(/\./g, ''); // Remove todos os pontos
             valor = valor.replace(',', '.'); // Substitui a vírgula por ponto
             valor = parseFloat(valor).toFixed(2); // Garante duas casas decimais
-            this.value = valor.replace('.', ','); // Substitui o ponto por vírgula para exibição
+            this.value = formatarValorParaExibicao(valor); // Formata para exibição
         });
 
         // Validação no frontend (ao enviar o formulário)
