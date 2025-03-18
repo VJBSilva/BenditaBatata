@@ -37,17 +37,6 @@ if (isset($_POST['salvar'])) {
     }
 }
 
-// Lógica para excluir despesa
-if (isset($_GET['excluir'])) {
-    $id = $_GET['excluir'];
-    $stmt = $pdo->prepare("UPDATE despesas SET status = 'excluido' WHERE id = ?");
-    $stmt->execute([$id]);
-
-    // Redirecionar para evitar reenvio do formulário
-    header("Location: cadastro_despesa.php");
-    exit();
-}
-
 // Carregar tipos de despesa
 $stmt = $pdo->query("SELECT * FROM tipo_despesa WHERE status = 'ativo'");
 $tipos_despesa = $stmt->fetchAll(PDO::FETCH_ASSOC);
