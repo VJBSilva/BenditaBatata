@@ -67,6 +67,8 @@ $tipo_usuario = $_COOKIE['tipo_usuario'] ?? 'user';
         <?php if ($tipo_usuario === 'admin'): ?>
             <button onclick="toggleSubMenu('subMenuCadastros')">Cadastros</button>
             <div class="sub-menu" id="subMenuCadastros">
+                <button onclick="window.location.href='cadastro_despesa.php'">Cadastro de Despesa</button>
+                <button onclick="window.location.href='cadastro_tipo_despesa.php'">Cadastro de Tipos de Despesa</button>
                 <button onclick="window.location.href='cadastro_categoria.php'">Cadastro de Categoria</button>
                 <button onclick="window.location.href='cadastro_produto.php'">Cadastro de Produto</button>
                 <button onclick="window.location.href='cadastro_adicionais.php'">Cadastro de Opcional</button>
