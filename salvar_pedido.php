@@ -19,8 +19,7 @@ if ($data) {
         $pdo->beginTransaction();
 
         // Obter a data e hora atual no fuso horário de Brasília
-        $stmt = $pdo->query("SELECT NOW() AT TIME ZONE 'America/Sao_Paulo' AS data_pedido");
-        $dataPedido = $stmt->fetchColumn();
+        $dataPedido = date('Y-m-d H:i:s');
 
         // Inserir o pedido na tabela `pedidos`
         $stmt = $pdo->prepare("INSERT INTO pedidos (observacao, senha, metodo_pagamento, desconto, data_pedido) VALUES (?, ?, ?, ?, ?)");
