@@ -273,9 +273,7 @@ $despesas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         // Função para mostrar todas as despesas ao clicar na lupa
         function mostrarTodasDespesas() {
-            // Mensagem de teste para verificar se o clique está funcionando
-            alert("Clicou na lupa! Função mostrarTodasDespesas foi chamada.");
-
+        
             // Limpar resultados anteriores
             searchResults.innerHTML = '';
 
