@@ -11,8 +11,15 @@ if (!isset($_COOKIE['usuario_id']) || $_COOKIE['tipo_usuario'] !== 'admin') {
 if (isset($_POST['salvar'])) {
     $id = $_POST['id'];
     $tipo_despesa_id = $_POST['tipo_despesa_id'];
-    $valor = str_replace(['.', ','], ['', '.'], $_POST['valor']); // Remove separador de milhares e ajusta decimal
-    $valor = floatval($valor); // Converte para número decimal corretamente
+    $valor = $_POST['valor'];
+
+    // Remove pontos (separadores de milhares) e substitui vírgula por ponto
+    $valor = str_replace('.', '', $valor); // Remove pontos
+    $valor = str_replace(',', '.', $valor); // Substitui vírgula por ponto
+
+    // Converte para float
+    $valor = floatval($valor);
+
     $data = $_POST['data'];
     $numero_documento = $_POST['numero_documento']; // Captura o número do documento
 
@@ -52,7 +59,6 @@ $despesas = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin - Cadastro de Despesas</title>
-    <!-- Adicionando FontAwesome para o ícone da lupa -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body {
@@ -165,7 +171,7 @@ $despesas = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <input type="hidden" id="id" name="id">
             <div class="search-container">
                 <input type="text" id="searchTipoDespesa" placeholder="Pesquisar tipo de despesa..." autocomplete="off">
-                <i class="fas fa-search lupa" onclick="mostrarTodasDespesas()"></i> <!-- Ícone da lupa -->
+                <i class="fas fa-search lupa" onclick="mostrarTodasDespesas()"></i>
                 <input type="hidden" id="tipo_despesa_id" name="tipo_despesa_id">
                 <div class="search-results" id="searchResults"></div>
             </div>
@@ -197,7 +203,7 @@ $despesas = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <td><?= $despesa['tipo_despesa'] ?></td>
                         <td>R$ <?= number_format($despesa['valor'], 2, ',', '.') ?></td>
                         <td><?= date('d/m/Y', strtotime($despesa['data'])) ?></td>
-                        <td><?= $despesa['numero_documento'] ?? 'N/A' ?></td> <!-- Exibe "N/A" se o campo for NULL -->
+                        <td><?= $despesa['numero_documento'] ?? 'N/A' ?></td>
                         <td class='actions'>
                             <a href='?editar=<?= $despesa['id'] ?>'><button>Editar</button></a>
                             <a href='?excluir=<?= $despesa['id'] ?>'><button class='delete'>Excluir</button></a>
@@ -295,24 +301,12 @@ $despesas = $stmt->fetchAll(PDO::FETCH_ASSOC);
             }
         });
 
-        // Função para formatar o valor no padrão brasileiro
-        function formatarValorParaExibicao(valor) {
-            // Converte o valor para número
-            valor = parseFloat(valor);
-
-            // Formata o valor no padrão brasileiro
-            return valor.toLocaleString('pt-BR', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            });
-        }
-
         // Formatação do valor no frontend (ao sair do campo)
         document.getElementById('valor').addEventListener('blur', function() {
             let valor = this.value.replace(/\./g, ''); // Remove todos os pontos
             valor = valor.replace(',', '.'); // Substitui a vírgula por ponto
             valor = parseFloat(valor).toFixed(2); // Garante duas casas decimais
-            this.value = formatarValorParaExibicao(valor); // Formata para exibição
+            this.value = valor.replace('.', ','); // Formata para exibição (vírgula como separador decimal)
         });
 
         // Validação no frontend (ao enviar o formulário)
