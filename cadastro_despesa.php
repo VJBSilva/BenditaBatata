@@ -56,7 +56,7 @@ $despesas = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin - Cadastro de Despesas</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style>
+     <style>
         body {
             font-family: Arial, sans-serif;
             background-color: #f8f9fa;
@@ -276,7 +276,7 @@ $despesas = $stmt->fetchAll(PDO::FETCH_ASSOC);
             // Limpar resultados anteriores
             searchResults.innerHTML = '';
 
-            // Exibir todos os tipos de despesa
+            // Exibir todos os tipos de despesa, independentemente do campo de pesquisa
             tiposDespesa.forEach(tipo => {
                 const div = document.createElement('div');
                 div.textContent = tipo.nome;
