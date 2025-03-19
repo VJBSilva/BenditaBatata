@@ -11,8 +11,8 @@ if (!isset($_COOKIE['usuario_id']) || $_COOKIE['tipo_usuario'] !== 'admin') {
 if (isset($_POST['salvar'])) {
     $id = $_POST['id'];
     $tipo_despesa_id = $_POST['tipo_despesa_id'];
-    $valor = str_replace('.', '', $_POST['valor']); // Remove os pontos (separadores de milhares)
-    $valor = str_replace(',', '.', $valor); // Substitui a vírgula por ponto (separador decimal)
+    $valor = str_replace(['.', ','], ['', '.'], $_POST['valor']); // Remove separador de milhares e ajusta decimal
+    $valor = floatval($valor); // Converte para número decimal corretamente
     $data = $_POST['data'];
     $numero_documento = $_POST['numero_documento']; // Captura o número do documento
 
