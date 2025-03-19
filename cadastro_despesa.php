@@ -56,7 +56,7 @@ $despesas = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin - Cadastro de Despesas</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-     <style>
+    <style>
         body {
             font-family: Arial, sans-serif;
             background-color: #f8f9fa;
@@ -273,10 +273,9 @@ $despesas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         // Função para mostrar todas as despesas ao clicar na lupa
         function mostrarTodasDespesas() {
-
             // Mensagem de teste para verificar se o clique está funcionando
-    alert("Clicou na lupa! Função mostrarTodasDespesas foi chamada."); // Ou use console.log("Clicou na lupa!");
-            
+            alert("Clicou na lupa! Função mostrarTodasDespesas foi chamada.");
+
             // Limpar resultados anteriores
             searchResults.innerHTML = '';
 
