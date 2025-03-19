@@ -273,7 +273,6 @@ $despesas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         // Função para mostrar todas as despesas ao clicar na lupa
         function mostrarTodasDespesas() {
-        
             // Limpar resultados anteriores
             searchResults.innerHTML = '';
 
@@ -316,8 +315,11 @@ $despesas = $stmt->fetchAll(PDO::FETCH_ASSOC);
             }
         });
 
-        // Definir a data atual como valor padrão no campo de data
-        document.getElementById('data').value = new Date().toISOString().split('T')[0];
+        // Definir a data atual no fuso horário local
+        const dataAtual = new Date();
+        const offset = dataAtual.getTimezoneOffset(); // Obter o offset do fuso horário em minutos
+        dataAtual.setMinutes(dataAtual.getMinutes() - offset); // Ajustar para o fuso horário local
+        document.getElementById('data').value = dataAtual.toISOString().split('T')[0];
     </script>
 </body>
 </html>
