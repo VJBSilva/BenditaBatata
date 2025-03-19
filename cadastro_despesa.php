@@ -13,12 +13,8 @@ if (isset($_POST['salvar'])) {
     $tipo_despesa_id = $_POST['tipo_despesa_id'];
     $valor = $_POST['valor'];
 
-    // Remove pontos (separadores de milhares) e substitui vírgula por ponto
-    $valor = str_replace('.', '', $valor); // Remove pontos
-    $valor = str_replace(',', '.', $valor); // Substitui vírgula por ponto
-
-    // Converte para float e garante duas casas decimais
-    $valor = number_format(floatval($valor), 2, '.', '');
+    // Apenas substitui vírgula por ponto
+    $valor = str_replace(',', '.', $valor);
 
     $data = $_POST['data'];
     $numero_documento = $_POST['numero_documento']; // Captura o número do documento
@@ -61,7 +57,104 @@ $despesas = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <title>Admin - Cadastro de Despesas</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        /* Estilos CSS (mantidos iguais) */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .form-container {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .form-container input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+        }
+        .form-container button {
+            background-color: #28a745;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .form-container button:hover {
+            background-color: #218838;
+        }
+        .table-container {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table th, table td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        table th {
+            background-color: #f8f9fa;
+        }
+        .actions button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+        .actions button:hover {
+            background-color: #0056b3;
+        }
+        .actions button.delete {
+            background-color: #dc3545;
+        }
+        .actions button.delete:hover {
+            background-color: #c82333;
+        }
+        .search-container {
+            position: relative;
+        }
+        .search-container .search-results {
+            position: absolute;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            width: 100%;
+            max-height: 150px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+        .search-container .search-results div {
+            padding: 10px;
+            cursor: pointer;
+        }
+        .search-container .search-results div:hover {
+            background-color: #f1f1f1;
+        }
+        .lupa {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -204,19 +297,10 @@ $despesas = $stmt->fetchAll(PDO::FETCH_ASSOC);
             }
         });
 
-        // Formatação do valor no frontend (ao sair do campo)
-        document.getElementById('valor').addEventListener('blur', function() {
-            let valor = this.value.replace(/\./g, ''); // Remove todos os pontos
-            valor = valor.replace(',', '.'); // Substitui a vírgula por ponto
-            valor = parseFloat(valor).toFixed(2); // Garante duas casas decimais
-            this.value = valor.replace('.', ','); // Formata para exibição (vírgula como separador decimal)
-        });
-
         // Validação no frontend (ao enviar o formulário)
         document.getElementById('formDespesa').addEventListener('submit', function(event) {
             const valorInput = document.getElementById('valor');
-            let valor = valorInput.value.replace(/\./g, ''); // Remove todos os pontos
-            valor = valor.replace(',', '.'); // Substitui a vírgula por ponto
+            let valor = valorInput.value.replace(',', '.'); // Substitui vírgula por ponto
 
             if (isNaN(valor) || valor <= 0) {
                 alert('O valor deve ser um número positivo válido.');
