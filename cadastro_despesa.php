@@ -75,7 +75,7 @@ $despesas = $stmt->fetchAll(PDO::FETCH_ASSOC);
             margin-bottom: 20px;
         }
         .form-container input {
-            width: 100%;
+            width: 97%;
             padding: 10px;
             margin-bottom: 10px;
             border: 1px solid #ddd;
