@@ -240,6 +240,9 @@ $despesas = $stmt->fetchAll(PDO::FETCH_ASSOC);
         const searchResults = document.getElementById('searchResults');
         const tipoDespesaIdInput = document.getElementById('tipo_despesa_id');
 
+        // Adiciona o evento de input ao campo de pesquisa
+        searchInput.addEventListener('input', filtrarTipoDespesa);
+
         // Função para filtrar e exibir resultados
         function filtrarTipoDespesa() {
             const termo = searchInput.value.toLowerCase();
@@ -269,28 +272,28 @@ $despesas = $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
 
         // Função para mostrar todas as despesas ao clicar na lupa
-function mostrarTodasDespesas() {
-    // Limpar resultados anteriores
-    searchResults.innerHTML = '';
+        function mostrarTodasDespesas() {
+            // Limpar resultados anteriores
+            searchResults.innerHTML = '';
 
-    // Exibir todos os tipos de despesa
-    tiposDespesa.forEach(tipo => {
-        const div = document.createElement('div');
-        div.textContent = tipo.nome;
-        div.addEventListener('click', () => {
-            searchInput.value = tipo.nome; // Preenche o campo de pesquisa
-            tipoDespesaIdInput.value = tipo.id; // Armazena o ID
-            searchResults.style.display = 'none'; // Oculta os resultados
-        });
-        searchResults.appendChild(div);
-    });
+            // Exibir todos os tipos de despesa
+            tiposDespesa.forEach(tipo => {
+                const div = document.createElement('div');
+                div.textContent = tipo.nome;
+                div.addEventListener('click', () => {
+                    searchInput.value = tipo.nome; // Preenche o campo de pesquisa
+                    tipoDespesaIdInput.value = tipo.id; // Armazena o ID
+                    searchResults.style.display = 'none'; // Oculta os resultados
+                });
+                searchResults.appendChild(div);
+            });
 
-    // Exibir os resultados
-    searchResults.style.display = 'block';
-}
+            // Exibir os resultados
+            searchResults.style.display = 'block';
+        }
 
-// Evento de clique na lupa
-document.querySelector('.lupa').addEventListener('click', mostrarTodasDespesas);
+        // Evento de clique na lupa
+        document.querySelector('.lupa').addEventListener('click', mostrarTodasDespesas);
 
         // Ocultar resultados ao clicar fora
         document.addEventListener('click', (e) => {
