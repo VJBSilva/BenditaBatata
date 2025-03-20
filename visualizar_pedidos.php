@@ -75,6 +75,8 @@ $pedidos = carregarPedidos($pdo);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Visualizar Pedidos - Bendita Batata</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
     <style>
         /* Estilos da página de visualização de pedidos */
         /* Estilos gerais */
@@ -435,6 +437,23 @@ $pedidos = carregarPedidos($pdo);
         .close-popup:hover {
             color: darkred;
         }
+.print-icon {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    cursor: pointer;
+    font-size: 20px;
+    color: #007bff;
+}
+
+.print-icon:hover {
+    color: #0056b3;
+}
+
+.pedido {
+    position: relative; /* Adicione isso para que o ícone de impressora seja posicionado corretamente */
+}
+        
     </style>
 </head>
 <body>
@@ -444,40 +463,41 @@ $pedidos = carregarPedidos($pdo);
     <div id="pedidos-container">
         <?php foreach ($pedidos as $pedido): ?>
             <div class="pedido">
-                <h2>Pedido <?= $pedido['id'] ?></h2>
-                <p><strong>Senha:</strong> <?= $pedido['senha'] ?? 'Nenhuma' ?></p>
-                <p><strong>Itens:</strong></p>
-                <ul>
-                    <?php
-                    $itens = carregarItensPedido($pdo, $pedido['id']);
-                    $itensPorCategoria = [];
-                    foreach ($itens as $item) {
-                        $categoria = $item['categoria_nome'];
-                        if (!isset($itensPorCategoria[$categoria])) {
-                            $itensPorCategoria[$categoria] = [];
-                        }
-                        $itensPorCategoria[$categoria][] = $item;
-                    }
+    <i class="fas fa-print print-icon" onclick="imprimirPedido(<?= $pedido['id'] ?>)"></i>
+    <h2>Pedido <?= $pedido['id'] ?></h2>
+    <p><strong>Senha:</strong> <?= $pedido['senha'] ?? 'Nenhuma' ?></p>
+    <p><strong>Itens:</strong></p>
+    <ul>
+        <?php
+        $itens = carregarItensPedido($pdo, $pedido['id']);
+        $itensPorCategoria = [];
+        foreach ($itens as $item) {
+            $categoria = $item['categoria_nome'];
+            if (!isset($itensPorCategoria[$categoria])) {
+                $itensPorCategoria[$categoria] = [];
+            }
+            $itensPorCategoria[$categoria][] = $item;
+        }
 
-                    foreach ($itensPorCategoria as $categoria => $itens) {
-                        echo "<li><strong>{$categoria}:</strong></li>";
-                        foreach ($itens as $item) {
-                            echo "<li>{$item['quantidade']}x {$item['nome']}</li>";
-                            $adicionais = carregarAdicionaisItemPedido($pdo, $item['id']);
-                            if (!empty($adicionais)) {
-                                echo "<li>Adicionais: " . implode(", ", $adicionais) . "</li>";
-                            }
-                        }
-                    }
-                    ?>
-                </ul>
-                <p><strong>Observações:</strong> <?= $pedido['observacao'] ?? 'Nenhuma' ?></p>
-                <div class="botoes-pedido">
-                    <button onclick="abrirPopupAlterarPedido(<?= $pedido['id'] ?>)">Alterar</button>
-                    <button class="finalizado" onclick="marcarComoFinalizado(<?= $pedido['id'] ?>)">Finalizar</button>
-                    <button class="excluir" onclick="excluirPedido(<?= $pedido['id'] ?>)">Excluir</button>
-                </div>
-            </div>
+        foreach ($itensPorCategoria as $categoria => $itens) {
+            echo "<li><strong>{$categoria}:</strong></li>";
+            foreach ($itens as $item) {
+                echo "<li>{$item['quantidade']}x {$item['nome']}</li>";
+                $adicionais = carregarAdicionaisItemPedido($pdo, $item['id']);
+                if (!empty($adicionais)) {
+                    echo "<li>Adicionais: " . implode(", ", $adicionais) . "</li>";
+                }
+            }
+        }
+        ?>
+    </ul>
+    <p><strong>Observações:</strong> <?= $pedido['observacao'] ?? 'Nenhuma' ?></p>
+    <div class="botoes-pedido">
+        <button onclick="abrirPopupAlterarPedido(<?= $pedido['id'] ?>)">Alterar</button>
+        <button class="finalizado" onclick="marcarComoFinalizado(<?= $pedido['id'] ?>)">Finalizar</button>
+        <button class="excluir" onclick="excluirPedido(<?= $pedido['id'] ?>)">Excluir</button>
+    </div>
+</div>
         <?php endforeach; ?>
     </div>
 
@@ -555,6 +575,10 @@ $pedidos = carregarPedidos($pdo);
     </div>
 
     <script>
+function imprimirPedido(pedidoId) {
+    // Abre a página de impressão em uma nova aba
+    window.open(`imprimir.php?pedido_id=${pedidoId}`, '_blank');
+}
         // Funções JavaScript para manipulação do pop-up e alteração do pedido
         function abrirPopupAlterarPedido(pedidoId) {
             console.log('Abrindo pop-up para o pedido:', pedidoId);
