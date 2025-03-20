@@ -1,8 +1,6 @@
 <?php
 require 'conexao.php'; // Inclui o arquivo de conexão com o banco de dados
-
 verificarLogin(); // Verifica se o usuário está logado
-
 // Verifica se o ID do pedido foi passado
 if (!isset($_GET['pedido_id'])) {
     die("ID do pedido não fornecido.");
@@ -10,54 +8,58 @@ if (!isset($_GET['pedido_id'])) {
 
 $pedido_id = $_GET['pedido_id'];
 
-// Buscar os dados do pedido
-$stmt = $pdo->prepare("
-    SELECT p.*, ip.*, pr.nome AS produto_nome, pr.preco, c.nome AS categoria_nome, a.nome AS adicional_nome
-    FROM pedidos p
-    LEFT JOIN itens_pedido ip ON p.id = ip.pedido_id
-    LEFT JOIN produtos pr ON ip.produto_id = pr.id
-    LEFT JOIN categorias c ON pr.categoria_id = c.id
-    LEFT JOIN itens_pedido_adicionais ipa ON ip.id = ipa.item_pedido_id
-    LEFT JOIN adicionais a ON ipa.adicional_id = a.id
-    WHERE p.id = :pedido_id
-");
-$stmt->execute(['pedido_id' => $pedido_id]);
-$pedido = $stmt->fetchAll(PDO::FETCH_ASSOC);
+try {
+    // Buscar os dados do pedido
+    $stmt = $pdo->prepare("
+        SELECT p.*, ip.*, pr.nome AS produto_nome, pr.preco, c.nome AS categoria_nome, a.nome AS adicional_nome
+        FROM pedidos p
+        LEFT JOIN itens_pedido ip ON p.id = ip.pedido_id
+        LEFT JOIN produtos pr ON ip.produto_id = pr.id
+        LEFT JOIN categorias c ON pr.categoria_id = c.id
+        LEFT JOIN itens_pedido_adicionais ipa ON ip.id = ipa.item_pedido_id
+        LEFT JOIN adicionais a ON ipa.adicional_id = a.id
+        WHERE p.id = :pedido_id
+    ");
+    $stmt->execute(['pedido_id' => $pedido_id]);
+    $pedido = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Verifica se o pedido foi encontrado
-if (empty($pedido)) {
-    die("Pedido não encontrado.");
-}
-
-// Organizar os dados do pedido
-$dados_pedido = [
-    'senha' => $pedido[0]['senha'],
-    'observacao' => $pedido[0]['observacao'],
-    'desconto' => $pedido[0]['desconto'],
-    'itens' => []
-];
-
-foreach ($pedido as $item) {
-    if (!isset($dados_pedido['itens'][$item['produto_id']])) {
-        $dados_pedido['itens'][$item['produto_id']] = [
-            'nome' => $item['produto_nome'],
-            'categoria' => $item['categoria_nome'],
-            'quantidade' => $item['quantidade'],
-            'preco' => $item['preco'],
-            'adicionais' => []
-        ];
+    // Verifica se o pedido foi encontrado
+    if (empty($pedido)) {
+        die("Pedido não encontrado.");
     }
-    if ($item['adicional_nome']) {
-        $dados_pedido['itens'][$item['produto_id']]['adicionais'][] = $item['adicional_nome'];
+
+    // Organizar os dados do pedido
+    $dados_pedido = [
+        'senha' => $pedido[0]['senha'],
+        'observacao' => $pedido[0]['observacao'],
+        'desconto' => (float)$pedido[0]['desconto'],
+        'itens' => []
+    ];
+
+    foreach ($pedido as $item) {
+        if (!isset($dados_pedido['itens'][$item['produto_id']])) {
+            $dados_pedido['itens'][$item['produto_id']] = [
+                'nome' => $item['produto_nome'],
+                'categoria' => $item['categoria_nome'],
+                'quantidade' => (int)$item['quantidade'],
+                'preco' => (float)$item['preco'],
+                'adicionais' => []
+            ];
+        }
+        if ($item['adicional_nome']) {
+            $dados_pedido['itens'][$item['produto_id']]['adicionais'][] = $item['adicional_nome'];
+        }
     }
+
+    // Calcular total bruto e total líquido
+    $total_bruto = array_reduce($dados_pedido['itens'], function($carry, $item) {
+        return $carry + ($item['quantidade'] * $item['preco']);
+    }, 0);
+
+    $total_liquido = $total_bruto - $dados_pedido['desconto'];
+} catch (PDOException $e) {
+    die("Erro ao buscar dados do pedido: " . $e->getMessage());
 }
-
-// Calcular total bruto e total líquido
-$total_bruto = array_reduce($dados_pedido['itens'], function($carry, $item) {
-    return $carry + ($item['quantidade'] * $item['preco']);
-}, 0);
-
-$total_liquido = $total_bruto - $dados_pedido['desconto'];
 ?>
 
 <!DOCTYPE html>
@@ -138,7 +140,6 @@ $total_liquido = $total_bruto - $dados_pedido['desconto'];
                     <div class="adicionais">Adicionais: <?php echo htmlspecialchars(implode(', ', $item['adicionais'])); ?></div>
                 <?php endif; ?>
             </div>
-            <!-- Removida a linha divisória entre os produtos -->
         <?php endforeach; ?>
 
         <div class="observacao">Observação: <?php echo htmlspecialchars($dados_pedido['observacao']); ?></div>
@@ -149,5 +150,8 @@ $total_liquido = $total_bruto - $dados_pedido['desconto'];
         <div class="total">Total Líquido: R$ <?php echo number_format($total_liquido, 2); ?></div>
         <div class="divisoria"></div>
     </div>
+    <script>
+        window.print(); // Imprime automaticamente ao carregar a página
+    </script>
 </body>
 </html>
